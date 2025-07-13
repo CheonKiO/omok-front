@@ -1,0 +1,60 @@
+:root {
+  --boardColor: #cda05a;
+  --mainColor: #8b5e3c;
+  --app-font: 'Pretendard';
+}
+/* 레이아웃용 */
+.flex {
+  display: flex;
+}
+.between {
+  justify-content: space-between;
+}
+.row-center {
+  justify-content: center;
+}
+.row-end {
+  justify-content: flex-end;
+}
+.col-center {
+  align-items: center;
+}
+.dir-col {
+  flex-direction: column;
+}
+/* 버튼 스타일 */
+.btn {
+  padding: 10px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: scale(0.98); /* 클릭 시 살짝 눌리는 효과 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.circle {
+  border-radius: 50%;
+}
+/* Pretendard */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ChosunGs';
+  src: url('/fonts/ChosunCentennial.ttf') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
