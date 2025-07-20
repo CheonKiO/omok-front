@@ -9,52 +9,35 @@
         </div>
       </div>
 
-      <h1 class="title">로그인</h1>
-      <p class="description">로그인 하기 위해 아이디와 비밀번호를 입력하세요.</p>
+      <h1 class="title">유저 등록</h1>
+      <p class="description">다른 유저에게 보일 닉네임을 입력해주세요.</p>
 
       <div class="form-group">
-        <label for="loginId">아이디</label>
+        <label for="username">닉네임</label>
         <input
           type="text"
-          id="loginId"
-          v-model="loginId"
-          placeholder="아이디를 입력하세요"
-          class="input-field"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="password">비밀번호</label>
-        <input
-          type="password"
-          id="password"
-          v-model="password"
-          placeholder="비밀번호를 입력하세요"
+          id="username"
+          v-model="username"
+          placeholder="닉네임을 입력하세요"
           class="input-field"
         />
       </div>
 
       <button type="submit" class="login-button">로그인</button>
-
-      <div class="links">
-        <a href="#" @click.prevent="$emit('signup')">회원가입</a>
-        <a href="#" @click.prevent="$emit('forgot')">비밀번호 찾기</a>
-      </div>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-const emit = defineEmits(['login', 'signup', 'forgot'])
+const emit = defineEmits(['login', 'signup', 'forgot']);
 
-const loginId = ref('')
-const password = ref('')
+const username = ref('');
 
 const handleLogin = () => {
-  emit('login', { loginId: loginId.value, password: password.value })
-}
+  emit('login', { username: username.value });
+};
 </script>
 
 <style scoped>
@@ -63,9 +46,8 @@ const handleLogin = () => {
 }
 
 .login-card {
-  background-color: var(--white);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* ✨ 그림자 추가 */
   border-radius: 0.75rem; /* 12px */
-  box-shadow: 0 0.75rem 1.5rem rgba(var(--black), 0.1); /* 12px 24px */
   padding: 2.5rem 3rem; /* 40px */
   width: 100%;
   box-sizing: border-box;
@@ -87,7 +69,7 @@ const handleLogin = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: wheat;
 }
 
 .logo-icon {
@@ -138,32 +120,12 @@ label {
   width: 100%;
   padding: 0.75rem; /* 12px */
   background-color: var(--mainColor);
-  color: var(--white);
+  color: wheat;
   border: none;
   border-radius: 0.5rem; /* 8px */
   font-size: 1rem; /* 16px */
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s;
-}
-
-.login-button:hover {
-  background-color: #6d28d9;
-}
-
-.links {
-  margin-top: 1.25rem; /* 20px */
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem; /* 14px */
-}
-
-.links a {
-  color: var(--mainColor);
-  text-decoration: none;
-}
-
-.links a:hover {
-  text-decoration: underline;
 }
 </style>

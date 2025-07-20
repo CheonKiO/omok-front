@@ -74,41 +74,6 @@ const close = () => {
   margin-bottom: 2rem;
 }
 
-/* 날짜 인풋 영역 */
-.date-range {
-  margin-top: 16px;
-}
-
-.date-inputs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.date-inputs input {
-  flex: 1;
-  min-width: 40%;
-  padding: 8px;
-  font-size: 0.95rem;
-  border: 1px solid var(--grey03);
-  border-radius: 6px;
-}
-
-/* 카테고리 */
-.category-select {
-  margin-top: 16px;
-}
-
-select {
-  width: 100%;
-  padding: 8px;
-  font-size: 0.95rem;
-  border: 1px solid var(--grey03);
-  border-radius: 6px;
-  margin-top: 6px;
-}
-
 /* 적용 버튼 */
 .apply-btn {
   margin-top: 20px;

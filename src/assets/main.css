@@ -22,6 +22,9 @@
 .dir-col {
   flex-direction: column;
 }
+.margin-center {
+  margin: 0 auto;
+}
 /* 버튼 스타일 */
 .btn {
   padding: 10px;

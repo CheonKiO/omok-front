@@ -1,8 +1,8 @@
 <template>
   <div class="user-info stone" :class="{ active: isActive, black: isBlack, white: !isBlack }">
     <div class="info">
-      <p v-if="name?.trim()">닉네임 : {{ name }}</p>
-      <p v-else>상대가 없습니다</p>
+      <p class="name" v-if="name?.trim()">닉네임 : {{ name }}</p>
+      <p calss="name" v-else>상대가 없습니다</p>
       <!-- <p>통산 전적: {{ record }}</p> -->
     </div>
   </div>
@@ -59,6 +59,9 @@ defineProps({
   border: 1px solid #666;
 }
 
+.name {
+  text-align: center;
+}
 @keyframes glow {
   from {
     box-shadow: 0 0 5px 1px gold;

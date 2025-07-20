@@ -3,40 +3,47 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useServerStore } from '@/stores/server';
 import { useRouter } from 'vue-router';
-import { useWebSocketStore } from '@/stores/websocket';
 import { usePlayerStore } from '@/stores/user';
+import { useToast } from '@/composable/useToast';
 import Card from '@/components/RoomListCard.vue';
 import Modal from '@/components/ModalComp.vue';
+
+const { show } = useToast();
+
 const room = ref(null);
 const roomList = ref([]);
 const isLoading = ref(false);
 const showModal = ref(false);
 
+const roomName = ref(null);
+
 const playerStore = usePlayerStore();
-const playerId = playerStore.playerId;
+const player = {
+  id: playerStore.playerId,
+  name: playerStore.username,
+};
 
 const router = useRouter();
-console.log(playerId); // 랜덤 UUID
+console.log(player.id); // 랜덤 UUID
 const server = useServerStore();
-const ws = useWebSocketStore();
 // 방 생성 + 웹소켓 연결 함수
 async function createRoomAndConnect() {
+  if (roomName.value == null || roomName.value.trim().length < 2) {
+    show('방 이름은 2글자 이상이어야 합니다', 'error', 1000);
+    return;
+  }
   try {
     // 1) 방 생성 API 호출
     const res = await axios.post(`${server.BASEURL}/api/rooms/create`, null, {
-      params: { playerId },
+      params: { title: roomName.value },
     });
 
     if (res.status != 200) throw new Error('Failed to create room');
 
     room.value = await res.data;
     console.log('Room created:', room.value);
-    // 3) 웹소켓 연결
-    ws.connect(room.value, playerId, server.BASEURL);
     // 2) join 요청
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, null, {
-      params: { playerId },
-    });
+    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, player);
 
     if (joinRes.status !== 200) throw new Error('Failed to join room');
 
@@ -52,11 +59,8 @@ async function createRoomAndConnect() {
 async function joinRoomAndConnect(roomId) {
   try {
     room.value = roomId;
-    ws.connect(roomId, playerId, server.BASEURL);
 
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, null, {
-      params: { playerId },
-    });
+    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, player);
 
     if (joinRes.status !== 200) throw new Error('Failed to join room');
     console.log('Join success:', roomId);
@@ -122,7 +126,7 @@ onMounted(fetchRoomList);
     >
       <div>
         <label for="room-name">방 이름</label>
-        <input type="text" name="room-name" />
+        <input type="text" name="room-name" v-model="roomName" />
       </div>
     </Modal>
   </div>
