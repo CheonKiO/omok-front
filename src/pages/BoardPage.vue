@@ -242,7 +242,7 @@ load();
 function handleMessage(msg) {
   if (msg.type === 'JOIN') {
     console.log('join');
-    if (msg.message === player.name) return;
+    if (msg.sender === player.id) return;
     console.log(`📢 유저 입장 알림: ${msg.message}`);
     opponent.name = msg.message;
     opponent.id = msg.sender;
@@ -281,7 +281,7 @@ function handleMessage(msg) {
     opponent.ready = false;
     player.ready = false;
   } else if (msg.type === 'READY') {
-    if (msg.message === player.name) {
+    if (msg.sender === player.id) {
       player.ready = true;
       return;
     }
