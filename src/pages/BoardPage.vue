@@ -227,7 +227,7 @@ async function load() {
   room.title = data.title;
   room.roomId = data.roomId;
   room.turn = data.turn;
-  room.board.splice(0, room.board.length, ...data.board.flat().map((v) => (v === 0 ? null : v)));
+  room.board.splice(0, room.board.length, ...data.board.map((v) => (v === 0 ? null : v)));
 
   room.isPlaying = data.isPlaying;
   const opp = data.players.find((p) => p.id !== player.id);
