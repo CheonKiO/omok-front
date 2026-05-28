@@ -137,7 +137,7 @@ function handleClick(index) {
 
 function handleSurrender() {
   ws.stompClient?.publish({
-    destination: '/app/ready',
+    destination: '/app/surrender',
     body: JSON.stringify({
       type: 'SURRENDER',
       sender: player,

@@ -59,7 +59,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
   function disconnect() {
     if (stompClient.value) {
       stompClient.value.deactivate();
-      clearRoomId(); // 🧹 삭제
+      stompClient.value = null;
+      clearRoomId();
       roomId.value = null;
       console.log('🔌 연결 종료됨');
     }
