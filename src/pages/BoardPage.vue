@@ -274,6 +274,7 @@ function handleMessage(msg) {
     room.isPlaying = false;
     show(msg.message, 'info');
   } else if (msg.type === 'LEAVE') {
+    if (!opponent.id || msg.sender !== opponent.id) return; // 상대방 LEAVE만 처리
     room.board = Array(SIZE * SIZE).fill(null);
     show(`${opponent.name} 님이 방을 나갔습니다`);
     opponent.id = null;
@@ -291,7 +292,8 @@ function handleMessage(msg) {
 }
 
 onMounted(() => {
-  ws.setHandler(handleMessage); // 메시지 수신시 자동 호출되도록 연결
+  ws.setHandler(handleMessage);
+  ws.setConnectHandler(load); // 연결/재연결 시 방 상태 갱신
   ws.connect(roomNo, player);
 });
 </script>

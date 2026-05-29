@@ -7,10 +7,15 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const stompClient = ref(null);
   const roomId = ref(null);
 
-  let messageHandler = null; // 메시지 처리 핸들러 (외부에서 주입)
+  let messageHandler = null;  // 메시지 처리 핸들러 (외부에서 주입)
+  let connectHandler = null;  // 연결/재연결 시 호출할 핸들러
 
   function setHandler(handlerFn) {
     messageHandler = handlerFn;
+  }
+
+  function setConnectHandler(handlerFn) {
+    connectHandler = handlerFn;
   }
   function connect(newRoomId, player) {
     const baseUrl = useServerStore().BASEURL;
@@ -28,7 +33,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
             const payload = JSON.parse(msg.body);
             console.log('📩 받은 메시지:', payload);
             if (messageHandler) {
-              messageHandler(payload); // 메시지를 바로 처리
+              messageHandler(payload);
             }
           } catch (e) {
             console.error('❌ 메시지 파싱 오류:', e);
@@ -44,6 +49,9 @@ export const useWebSocketStore = defineStore('websocket', () => {
             type: 'JOIN',
           }),
         });
+
+        // ✅ 연결/재연결 시 방 상태 갱신 (상대방 정보 복구)
+        if (connectHandler) connectHandler();
       },
       onDisconnect: () => {
         console.log('🛑 웹소켓 연결 종료');
@@ -62,6 +70,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
       stompClient.value = null;
       clearRoomId();
       roomId.value = null;
+      connectHandler = null;
+      messageHandler = null;
       console.log('🔌 연결 종료됨');
     }
   }
@@ -79,5 +89,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     connect,
     disconnect,
     setHandler,
+    setConnectHandler,
   };
 });
