@@ -19,7 +19,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     saveRoomId(newRoomId); // 💾 저장
 
     stompClient.value = new Client({
-      webSocketFactory: () => new SockJS(`${baseUrl}/game`),
+      webSocketFactory: () => new SockJS(`${baseUrl}/game`, null, { withCredentials: false }),
       reconnectDelay: 5000,
       onConnect: () => {
         stompClient.value.subscribe(`/topic/room/${newRoomId}`, (msg) => {
