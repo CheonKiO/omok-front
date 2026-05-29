@@ -13,9 +13,10 @@
     </div>
     <div class="header-mid flex dir-col row-center col-center">
       <Timer v-if="room.isPlaying" :initialTime="10" :key="room.turn" @timeout="handleTimeout" />
-      <div class="victory" v-if="!room.isPlaying">
+      <div class="victory" v-if="!room.isPlaying && lastIndex != null">
         {{ room.board[lastIndex] % 2 == 1 ? '흑돌' : '백돌' }} 승리
       </div>
+      <div v-if="!ws.isConnected" class="connecting">🔄 연결 중...</div>
       <div v-if="room.isPlaying" class="turn">제 {{ room.turn }} 수</div>
     </div>
     <div class="header-right flex row-end col-center">
@@ -51,7 +52,7 @@
         v-if="!room.isPlaying && opponent.id != null"
         class="btn"
         @click="handleReady"
-        :disabled="player.ready"
+        :disabled="player.ready || !ws.isConnected"
       >
         준비
       </button>
@@ -341,5 +342,9 @@ onMounted(() => {
 }
 .victory {
   font-size: 2rem;
+}
+.connecting {
+  font-size: 0.85rem;
+  color: #888;
 }
 </style>
