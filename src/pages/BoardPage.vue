@@ -208,16 +208,13 @@ const ws = useWebSocketStore();
 
 async function disconnect() {
   try {
-    // http로 서버에 방 나감 알림
     await axios.post(`${server.BASEURL}/api/rooms/leave/${route.params.roomNo}`, null, {
       params: { playerId: player.id },
     });
-    // websocket 연결 끊기
-    ws.disconnect();
   } catch (e) {
     console.error('방 나가기 오류 발생:', e);
   } finally {
-    // 이후 화면 이동 등 처리
+    ws.disconnect();
     router.push({ name: 'Home' });
   }
 }
@@ -266,12 +263,12 @@ function handleMessage(msg) {
     lastIndex.value = msg.index;
     moveHistory.value.push(lastIndex.value);
   } else if (msg.type === 'GAME_END') {
-    room.board[msg.index] = room.turn;
-    room.turn = msg.turn;
-    if (msg.index != null) {
+    if (msg.index != null && msg.turn != null) {
+      room.board[msg.index] = room.turn;
+      room.turn = msg.turn;
       lastIndex.value = msg.index;
+      moveHistory.value.push(lastIndex.value);
     }
-    moveHistory.value.push(lastIndex.value);
     room.isPlaying = false;
     show(msg.message, 'info');
   } else if (msg.type === 'LEAVE') {
@@ -289,6 +286,13 @@ function handleMessage(msg) {
     }
     opponent.ready = true;
     show(msg.message + '님 준비 완료');
+  } else if (msg.type === 'CANCEL') {
+    if (msg.sender === player.id) {
+      player.ready = false;
+    } else {
+      opponent.ready = false;
+    }
+    show(msg.message + '님이 준비를 취소하셨습니다');
   }
 }
 
