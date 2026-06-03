@@ -12,11 +12,14 @@
       </div>
     </div>
     <div class="header-mid flex dir-col row-center col-center">
-      <Timer v-if="room.isPlaying" :initialTime="10" :key="room.turn" @timeout="handleTimeout" />
+      <Timer v-if="room.isPlaying && !opponentDisconnected" ref="timerRef" :initialTime="10" :key="room.turn" @timeout="handleTimeout" />
       <div class="victory" v-if="!room.isPlaying && lastIndex != null">
         {{ room.board[lastIndex] % 2 == 1 ? '흑돌' : '백돌' }} 승리
       </div>
       <div v-if="!ws.isConnected" class="connecting">🔄 연결 중...</div>
+      <div v-if="opponentDisconnected" class="reconnecting">
+        ⚠️ 상대방 연결 끊김 ({{ reconnectCountdown }}초 대기)
+      </div>
       <div v-if="room.isPlaying" class="turn">제 {{ room.turn }} 수</div>
     </div>
     <div class="header-right flex row-end col-center">
@@ -104,6 +107,10 @@ const room = reactive({
 });
 
 const opponent = reactive({ id: null, name: null, ready: false });
+
+const opponentDisconnected = ref(false);
+const reconnectCountdown = ref(30);
+let reconnectTimer = null;
 
 const lastIndex = ref(null);
 const moveHistory = ref([]); // 착수 인덱스들을 순서대로 기록
@@ -233,6 +240,10 @@ async function load() {
     opponent.id = opp.id;
     opponent.name = opp.name;
   }
+  // 게임 중 재연결 시 흑/백 복원
+  if (data.isPlaying && data.blackPlayer) {
+    myStoneIsBlack.value = data.blackPlayer === player.id;
+  }
 }
 
 load();
@@ -271,8 +282,25 @@ function handleMessage(msg) {
     }
     room.isPlaying = false;
     show(msg.message, 'info');
+  } else if (msg.type === 'DISCONNECTED') {
+    if (!opponent.id || msg.sender !== opponent.id) return;
+    opponentDisconnected.value = true;
+    reconnectCountdown.value = 30;
+    show(`${opponent.name}님 연결 끊김. 30초 내 재연결되지 않으면 게임이 종료됩니다.`, 'info', 4000);
+    reconnectTimer = setInterval(() => {
+      reconnectCountdown.value--;
+      if (reconnectCountdown.value <= 0) clearInterval(reconnectTimer);
+    }, 1000);
+  } else if (msg.type === 'RECONNECT') {
+    if (!opponent.id || msg.sender !== opponent.id) return;
+    opponentDisconnected.value = false;
+    clearInterval(reconnectTimer);
+    reconnectCountdown.value = 30;
+    show(`${opponent.name}님이 재연결되었습니다.`, 'info');
   } else if (msg.type === 'LEAVE') {
-    if (!opponent.id || msg.sender !== opponent.id) return; // 상대방 LEAVE만 처리
+    if (!opponent.id || msg.sender !== opponent.id) return;
+    opponentDisconnected.value = false;
+    clearInterval(reconnectTimer);
     room.board = Array(SIZE * SIZE).fill(null);
     show(`${opponent.name} 님이 방을 나갔습니다`);
     opponent.id = null;
@@ -350,5 +378,10 @@ onMounted(() => {
 .connecting {
   font-size: 0.85rem;
   color: #888;
+}
+.reconnecting {
+  font-size: 0.85rem;
+  color: #c0392b;
+  font-weight: 600;
 }
 </style>

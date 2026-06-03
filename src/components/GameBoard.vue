@@ -148,10 +148,10 @@ defineProps({
       right;
   background-repeat: no-repeat;
   background-size:
-    100% 3.4%,
-    100% 3.7%,
+    100% 3.3%,
+    100% 3.3%,
     3.3% 100%,
-    4% 100%;
+    3.3% 100%;
 }
 .cell {
   position: relative;
