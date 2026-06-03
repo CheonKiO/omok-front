@@ -123,12 +123,9 @@ const isMyTurn = computed(() => {
 
 function handleClick(index) {
   if (!room.isPlaying || !isMyTurn.value) return;
-  if (room.turn % 2 == 1) {
-    // todo: 백엔드 로직 테스트 위해 막아놈. 나중에 풀어야함
-    if (isForbidden(room.board, index) && false) {
-      show('해당 위치는 금수입니다', 'error', 2000);
-      return;
-    }
+  if (room.turn % 2 == 1 && isForbidden(room.board, index)) {
+    show('해당 위치는 금수입니다', 'error', 2000);
+    return;
   }
 
   // 여기서 웹소켓 메시지 발송

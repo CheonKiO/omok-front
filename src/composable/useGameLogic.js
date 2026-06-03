@@ -181,7 +181,6 @@ function isForbidden(board, index) {
   const { hasOverline, hasFive } = isOverline(board, index);
   const openThrees = countOpenThrees(board, index);
   const fours = countFour(board, index);
-  console.log(openThrees);
   return (hasOverline || openThrees >= 2 || fours >= 2) && !hasFive;
 }
 
