@@ -70,20 +70,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue';
-
+import { reactive, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { usePlayerStore } from '@/stores/user';
+import { useWebSocketStore } from '@/stores/websocket';
+import { useGameRoom } from '@/composable/useGameRoom';
 import GameBoard from '@/components/GameBoard.vue';
 import UserInfo from '@/components/UserInfo.vue';
-import { useToast } from '@/composable/useToast';
-import { isForbidden } from '@/composable/useGameLogic';
-import { useRoute, useRouter } from 'vue-router';
-import { useWebSocketStore } from '@/stores/websocket';
-import { usePlayerStore } from '@/stores/user';
-import { useServerStore } from '@/stores/server';
 import Timer from '@/components/TimerComp.vue';
-import axios from 'axios';
 
-const router = useRouter();
+const route = useRoute();
+const roomNo = route.params.roomNo;
+const ws = useWebSocketStore();
+
 const playerStore = usePlayerStore();
 const player = reactive({
   id: playerStore.playerId,
@@ -91,239 +90,19 @@ const player = reactive({
   ready: false,
 });
 
-const server = useServerStore();
-
-const { show } = useToast();
-
-const timerRef = ref(null);
-
-const SIZE = 15;
-const room = reactive({
-  title: '',
-  roomId: '',
-  turn: 1,
-  board: Array(SIZE * SIZE).fill(null),
-  isPlaying: false,
-});
-
-const opponent = reactive({ id: null, name: null, ready: false });
-
-const opponentDisconnected = ref(false);
-const reconnectCountdown = ref(30);
-let reconnectTimer = null;
-
-const lastIndex = ref(null);
-const moveHistory = ref([]); // 착수 인덱스들을 순서대로 기록
-const myStoneIsBlack = ref(null);
-
-const isMyTurn = computed(() => {
-  const isBlackTurn = room.turn % 2 === 1;
-  return myStoneIsBlack.value === isBlackTurn;
-});
-
-function handleClick(index) {
-  if (!room.isPlaying || !isMyTurn.value) return;
-  if (room.turn % 2 == 1 && isForbidden(room.board, index)) {
-    show('해당 위치는 금수입니다', 'error', 2000);
-    return;
-  }
-
-  // 여기서 웹소켓 메시지 발송
-  ws.stompClient?.publish({
-    destination: '/app/move', // 서버에서 받을 엔드포인트 맞게 수정
-    body: JSON.stringify({
-      type: 'ACTION',
-      sender: player,
-      roomId: room.roomId ?? route.params.roomNo,
-      index: index,
-    }),
-  });
-}
-
-function handleSurrender() {
-  ws.stompClient?.publish({
-    destination: '/app/surrender',
-    body: JSON.stringify({
-      type: 'SURRENDER',
-      sender: player,
-      roomId: room.roomId ?? route.params.roomNo,
-    }),
-  });
-}
-function handleReady() {
-  ws.stompClient?.publish({
-    destination: '/app/ready',
-    body: JSON.stringify({
-      type: 'READY',
-      sender: player,
-      roomId: room.roomId ?? route.params.roomNo,
-    }),
-  });
-}
-function handleTimeout() {
-  // 자신의 턴에 타임아웃이 발생한 경우만 전송. 2번 전송 방지
-  if (!room.isPlaying || !isMyTurn.value) return;
-  ws.stompClient?.publish({
-    destination: '/app/timeout', // 서버에서 받을 엔드포인트 맞게 수정
-    body: JSON.stringify({
-      type: 'TIMEOUT',
-      sender: player,
-      roomId: room.roomId ?? route.params.roomNo,
-    }),
-  });
-}
-
-// todo: 서버 연동 후 수정 필요
-// 무르기 요청 들어오면 타이머 일시정지
-// 나중에는 요청과 수락 두가지 메서드로 나눠야함
-function request() {
-  if (room.turn <= 1 || moveHistory.value.length === 0) {
-    show('더 이상 무를 수 없습니다.', 'error');
-    return;
-  }
-  timerRef.value?.pause(); // 일단 멈춤
-
-  const confirmed = confirm('한 수 무르기에 동의하시겠습니까?');
-  if (confirmed) {
-    // 서버로 무르기 요청 등 진행
-    console.log('요청 전송');
-    timerRef.value?.resume(); // 확인 누르면 재개 (혹은 응답 대기 후 재개)
-    undoMove();
-  } else {
-    console.log('취소됨');
-    timerRef.value?.resume(); // 취소해도 그냥 재개
-  }
-}
-
-// todo: 서버 연동 후 수정 필요
-function undoMove() {
-  const removedIndex = moveHistory.value.pop(); // 마지막 착수 제거
-  room.board[removedIndex] = null; // 돌 제거
-  room.turn--;
-  lastIndex.value =
-    moveHistory.value.length > 0 ? moveHistory.value[moveHistory.value.length - 1] : null;
-  show('한 수를 무르셨습니다.', 'info');
-}
-
-const route = useRoute();
-const roomNo = route.params.roomNo;
-console.log('room id = ', roomNo);
-const ws = useWebSocketStore();
-
-async function disconnect() {
-  try {
-    await axios.post(`${server.BASEURL}/api/rooms/leave/${route.params.roomNo}`, null, {
-      params: { playerId: player.id },
-    });
-  } catch (e) {
-    console.error('방 나가기 오류 발생:', e);
-  } finally {
-    ws.disconnect();
-    router.push({ name: 'Home' });
-  }
-}
-
-async function load() {
-  const { data } = await axios.get(`${server.BASEURL}/api/rooms/${roomNo}`);
-  console.log(data);
-  room.title = data.title;
-  room.roomId = data.roomId;
-  room.turn = data.turn;
-  room.board.splice(0, room.board.length, ...data.board.map((v) => (v === 0 ? null : v)));
-
-  room.isPlaying = data.isPlaying;
-  const opp = data.players.find((p) => p.id !== player.id);
-  if (opp != null) {
-    opponent.id = opp.id;
-    opponent.name = opp.name;
-  }
-  // 게임 중 재연결 시 흑/백 복원
-  if (data.isPlaying && data.blackPlayer) {
-    myStoneIsBlack.value = data.blackPlayer === player.id;
-  }
-}
+const {
+  room, opponent, lastIndex, myStoneIsBlack, timerRef,
+  opponentDisconnected, reconnectCountdown, isMyTurn,
+  load, handleMessage,
+  handleClick, handleSurrender, handleReady, handleTimeout,
+  request, disconnect,
+} = useGameRoom(roomNo, player);
 
 load();
 
-function handleMessage(msg) {
-  if (msg.type === 'JOIN') {
-    console.log('join');
-    if (msg.sender === player.id) return;
-    console.log(`📢 유저 입장 알림: ${msg.message}`);
-    opponent.name = msg.message;
-    opponent.id = msg.sender;
-    show(`${msg.message}님이 입장하셨습니다`);
-  } else if (msg.type === 'GAME_START') {
-    console.log('🎮 게임 시작 메시지 수신됨!');
-    room.isPlaying = true;
-    room.turn = 1;
-    room.board = Array(SIZE * SIZE).fill(null);
-    player.ready = false;
-    opponent.ready = false;
-    lastIndex.value = null;
-    moveHistory.value = [];
-    myStoneIsBlack.value = msg.blackPlayer === player.id;
-    console.log('my stone is black:', myStoneIsBlack.value);
-    show('게임이 시작되었습니다.', 'info', 2000);
-  } else if (msg.type === 'ACTION') {
-    room.board[msg.index] = room.turn;
-    room.turn = msg.turn;
-    lastIndex.value = msg.index;
-    moveHistory.value.push(lastIndex.value);
-  } else if (msg.type === 'GAME_END') {
-    if (msg.index != null && msg.turn != null) {
-      room.board[msg.index] = room.turn;
-      room.turn = msg.turn;
-      lastIndex.value = msg.index;
-      moveHistory.value.push(lastIndex.value);
-    }
-    room.isPlaying = false;
-    show(msg.message, 'info');
-  } else if (msg.type === 'DISCONNECTED') {
-    if (!opponent.id || msg.sender !== opponent.id) return;
-    opponentDisconnected.value = true;
-    reconnectCountdown.value = 30;
-    show(`${opponent.name}님 연결 끊김. 30초 내 재연결되지 않으면 게임이 종료됩니다.`, 'info', 4000);
-    reconnectTimer = setInterval(() => {
-      reconnectCountdown.value--;
-      if (reconnectCountdown.value <= 0) clearInterval(reconnectTimer);
-    }, 1000);
-  } else if (msg.type === 'RECONNECT') {
-    if (!opponent.id || msg.sender !== opponent.id) return;
-    opponentDisconnected.value = false;
-    clearInterval(reconnectTimer);
-    reconnectCountdown.value = 30;
-    show(`${opponent.name}님이 재연결되었습니다.`, 'info');
-  } else if (msg.type === 'LEAVE') {
-    if (!opponent.id || msg.sender !== opponent.id) return;
-    opponentDisconnected.value = false;
-    clearInterval(reconnectTimer);
-    room.board = Array(SIZE * SIZE).fill(null);
-    show(`${opponent.name} 님이 방을 나갔습니다`);
-    opponent.id = null;
-    opponent.name = null;
-    opponent.ready = false;
-    player.ready = false;
-  } else if (msg.type === 'READY') {
-    if (msg.sender === player.id) {
-      player.ready = true;
-      return;
-    }
-    opponent.ready = true;
-    show(msg.message + '님 준비 완료');
-  } else if (msg.type === 'CANCEL') {
-    if (msg.sender === player.id) {
-      player.ready = false;
-    } else {
-      opponent.ready = false;
-    }
-    show(msg.message + '님이 준비를 취소하셨습니다');
-  }
-}
-
 onMounted(() => {
   ws.setHandler(handleMessage);
-  ws.setConnectHandler(load); // 연결/재연결 시 방 상태 갱신
+  ws.setConnectHandler(load);
   ws.connect(roomNo, player);
 });
 </script>
@@ -334,7 +113,6 @@ onMounted(() => {
   padding: 10px;
   background-color: rgba(255, 255, 255, 0.2);
   background-image:
-    /* 좌우 흐림 */
     linear-gradient(
       to right,
       rgba(255, 255, 255, 0),
@@ -342,14 +120,13 @@ onMounted(() => {
       rgba(255, 255, 255, 0.3) 70%,
       rgba(255, 255, 255, 0)
     ),
-    /* 아래쪽 흐림 */
-      linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 0.3) 30%,
-        rgba(255, 255, 255, 0.3) 70%,
-        rgba(255, 255, 255, 0)
-      );
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.3) 30%,
+      rgba(255, 255, 255, 0.3) 70%,
+      rgba(255, 255, 255, 0)
+    );
   background-repeat: no-repeat;
   background-size: 100% 100%;
   border-radius: 10px;
@@ -366,19 +143,8 @@ onMounted(() => {
   width: 100%;
   height: 100%;
 }
-.turn {
-  padding-top: 10px;
-}
-.victory {
-  font-size: 2rem;
-}
-.connecting {
-  font-size: 0.85rem;
-  color: #888;
-}
-.reconnecting {
-  font-size: 0.85rem;
-  color: #c0392b;
-  font-weight: 600;
-}
+.turn { padding-top: 10px; }
+.victory { font-size: 2rem; }
+.connecting { font-size: 0.85rem; color: #888; }
+.reconnecting { font-size: 0.85rem; color: #c0392b; font-weight: 600; }
 </style>
