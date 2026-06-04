@@ -2,11 +2,13 @@
   <!-- ── 헤더 ─────────────────────────────────── -->
   <div class="game-header">
     <div class="header-left flex col-center">
+      <!-- 한수 무르기: 서버 연동 미구현, 추후 활성화
       <button v-if="room.isPlaying" class="hbtn" @click="request">
         <font-awesome-icon :icon="['fas', 'hands-praying']" />
         <span>무르기</span>
       </button>
-      <button v-else class="hbtn" @click="disconnect">
+      -->
+      <button class="hbtn" @click="disconnect">
         <font-awesome-icon :icon="['fas', 'arrow-left']" />
         <span>나가기</span>
       </button>
@@ -248,9 +250,9 @@ onMounted(() => {
    ════════════════════════════════════ */
 .game-board {
   display: grid;
-  grid-template-columns: 90px 1fr 90px;
+  grid-template-columns: clamp(100px, 14vw, 180px) 1fr clamp(100px, 14vw, 180px);
   width: 100%;
-  align-items: stretch; /* 열 높이 = 보드 높이 */
+  align-items: stretch;
 }
 
 /* 상대방: 왼쪽 열, 위쪽 정렬 = 보드 상단 라인 */
@@ -281,16 +283,8 @@ onMounted(() => {
 /* 플레이어 슬롯 공통 */
 .player-slot { gap: 4px; }
 
-.slot-name {
-  font-size: 0.72rem;
-  color: var(--inkMid);
-  font-weight: 600;
-  text-align: center;
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* 데스크탑: 이름은 돌 안에 표시하므로 숨김 */
+.slot-name { display: none; }
 .slot-ready {
   font-size: 0.62rem;
   color: var(--accentColor);
@@ -306,7 +300,7 @@ onMounted(() => {
 
 /* ════════════════════════════════════
    모바일 (≤ 768px)
-   opponent 좌상단 / board 전체 / me 우하단
+   수직 배치: 상대(보드 위) | 보드 | 나(보드 아래)
    ════════════════════════════════════ */
 @media (max-width: 768px) {
   .game-header { height: 52px; padding: 0 10px; }
@@ -315,37 +309,48 @@ onMounted(() => {
 
   .board-stage {
     height: calc(100svh - 52px);
-    align-items: flex-start; /* 위에서부터 쌓기 */
   }
 
-  /* 3행 그리드: 상대(좌상) | 보드(전체) | 나(우하) */
+  /* flex 컬럼: 상대 → 보드 → 나, 전체 수직 중앙 */
   .game-board {
-    grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto 1fr auto;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     width: 100%;
     height: calc(100svh - 52px);
+    gap: 4px;
   }
 
+  /* 상대: 그룹은 왼쪽, 그룹 내부(돌↔이름)는 중앙 정렬 */
   .col-opponent {
-    grid-column: 1; grid-row: 1;
-    padding: 6px 4px 0;
-    justify-content: flex-start;
-  }
-
-  .col-board {
-    grid-column: 1 / 4; grid-row: 2;
+    flex-direction: column;
     align-items: center;
-    padding: 4px 0;
+    align-self: flex-start;
+    padding: 0 8px;
+    gap: 2px;
   }
 
+  /* 나: 그룹은 오른쪽, 그룹 내부(돌↔이름)는 중앙 정렬 */
   .col-player {
-    grid-column: 3; grid-row: 3;
-    padding: 0 4px 6px;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: center;
+    align-self: flex-end;
+    padding: 0 8px;
+    gap: 2px;
   }
 
-  .ready-btn { margin-bottom: 4px; font-size: 0.78rem; padding: 5px 10px; }
-  .slot-name { font-size: 0.65rem; max-width: 56px; }
+  .ready-btn { font-size: 0.72rem; padding: 4px 8px; letter-spacing: 0.05em; margin-bottom: 2px; }
+
+  /* 모바일: 이름을 돌 아래에 표시 */
+  .slot-name {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--inkMid);
+    font-weight: 600;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 </style>

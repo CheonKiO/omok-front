@@ -73,8 +73,7 @@ defineProps({
 
 <style scoped>
 .board-wrapper {
-  /* 데스크탑: 사이드 열 90px×2=180px, 나머지가 보드 */
-  width: min(calc(100vw - 180px), calc(100svh - 72px - 40px));
+  width: min(calc(100vw - clamp(200px, 28vw, 360px)), calc(100svh - 72px - 40px));
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: 20px calc(100% - 40px) 20px;
@@ -85,9 +84,9 @@ defineProps({
 }
 
 @media (max-width: 768px) {
-  /* 모바일: 전체 너비, 높이는 남은 화면(헤더 52px + UserInfo 위아래 각 ~70px) */
+  /* 모바일: 거의 전체 너비, 세로는 헤더 + 위아래 유저정보(~140px) 제외 */
   .board-wrapper {
-    width: min(100vw, calc(100svh - 52px - 140px));
+    width: min(calc(100vw - 16px), calc(100svh - 52px - 140px));
   }
 }
 
