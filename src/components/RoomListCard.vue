@@ -3,7 +3,10 @@
     <div class="room-info flex col-center gap">
       <span class="room-icon">棋</span>
       <div>
-        <div class="room-title">{{ props.title }}</div>
+        <div class="room-title">
+          {{ props.title }}
+          <font-awesome-icon v-if="props.hasPassword" :icon="['fas', 'lock']" class="lock-icon" />
+        </div>
         <div class="room-personnel">{{ props.personnel }} / 2 명</div>
       </div>
     </div>
@@ -12,7 +15,7 @@
 </template>
 
 <script setup>
-const props = defineProps(['title', 'personnel', 'button']);
+const props = defineProps(['title', 'personnel', 'hasPassword']);
 </script>
 
 <style scoped>
@@ -50,6 +53,15 @@ const props = defineProps(['title', 'personnel', 'button']);
   font-weight: 600;
   color: var(--inkColor);
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lock-icon {
+  font-size: 0.72rem;
+  color: var(--inkMid);
+  opacity: 0.7;
 }
 
 .room-personnel {

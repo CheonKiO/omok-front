@@ -15,6 +15,10 @@ const roomList = ref([]);
 const isLoading = ref(false);
 const showModal = ref(false);
 const roomName = ref(null);
+const roomPassword = ref('');
+const showPasswordModal = ref(false);
+const passwordInput = ref('');
+const pendingRoomId = ref(null);
 
 const playerStore = usePlayerStore();
 const player = { id: playerStore.playerId, name: playerStore.username };
@@ -28,12 +32,14 @@ async function createRoomAndConnect() {
     return;
   }
   try {
-    const res = await axios.post(`${server.BASEURL}/api/rooms/create`, null, {
-      params: { title: roomName.value },
-    });
-    if (res.status != 200) throw new Error('Failed to create room');
-    room.value = await res.data;
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, player);
+    const params = { title: roomName.value };
+    if (roomPassword.value.trim()) params.password = roomPassword.value.trim();
+    const res = await axios.post(`${server.BASEURL}/api/rooms/create`, null, { params });
+    if (res.status !== 200) throw new Error('Failed to create room');
+    room.value = res.data;
+    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, player,
+      { params: roomPassword.value.trim() ? { password: roomPassword.value.trim() } : {} }
+    );
     if (joinRes.status !== 200) throw new Error('Failed to join room');
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
@@ -41,14 +47,34 @@ async function createRoomAndConnect() {
   }
 }
 
-async function joinRoomAndConnect(roomId) {
+function requestJoin(roomItem) {
+  if (roomItem.hasPassword) {
+    pendingRoomId.value = roomItem.roomId;
+    passwordInput.value = '';
+    showPasswordModal.value = true;
+  } else {
+    joinRoomAndConnect(roomItem.roomId, '');
+  }
+}
+
+async function confirmPasswordAndJoin() {
+  await joinRoomAndConnect(pendingRoomId.value, passwordInput.value);
+}
+
+async function joinRoomAndConnect(roomId, password) {
   try {
     room.value = roomId;
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, player);
+    const params = password ? { password } : {};
+    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, player, { params });
     if (joinRes.status !== 200) throw new Error('Failed to join room');
+    showPasswordModal.value = false;
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
-    console.error(error);
+    if (error.response?.status === 403) {
+      show('비밀번호가 틀렸습니다', 'error', 1500);
+    } else {
+      console.error(error);
+    }
   }
 }
 
@@ -96,9 +122,10 @@ onMounted(fetchRoomList);
             :key="room.roomId"
             :title="room.title"
             :personnel="room.players.length"
+            :hasPassword="room.hasPassword"
           >
             <button
-              @click="joinRoomAndConnect(room.roomId)"
+              @click="requestJoin(room)"
               :disabled="room.players.length >= 2"
               class="btn join-btn"
             >
@@ -114,16 +141,41 @@ onMounted(fetchRoomList);
       <span class="create-icon">＋</span>
     </button>
 
+    <!-- 방 만들기 모달 -->
     <Modal
       :visible="showModal"
-      @close="showModal = false"
+      @close="showModal = false; roomPassword = ''"
       :headerContent="'대국방 개설'"
       :applyContent="'개설하기'"
       :applyFunction="createRoomAndConnect"
     >
       <div class="modal-field">
         <label for="room-name">대국방 이름</label>
-        <input type="text" id="room-name" name="room-name" v-model="roomName" placeholder="두 글자 이상 입력" />
+        <input type="text" id="room-name" v-model="roomName" placeholder="두 글자 이상 입력" />
+      </div>
+      <div class="modal-field">
+        <label for="room-password">비밀번호 <span class="optional">(선택)</span></label>
+        <input type="password" id="room-password" v-model="roomPassword" placeholder="설정하지 않으면 공개방" />
+      </div>
+    </Modal>
+
+    <!-- 비밀방 입장 모달 -->
+    <Modal
+      :visible="showPasswordModal"
+      @close="showPasswordModal = false"
+      :headerContent="'비밀번호 입력'"
+      :applyContent="'입장하기'"
+      :applyFunction="confirmPasswordAndJoin"
+    >
+      <div class="modal-field">
+        <label for="join-password">비밀번호</label>
+        <input
+          type="password"
+          id="join-password"
+          v-model="passwordInput"
+          placeholder="비밀번호를 입력하세요"
+          @keyup.enter="confirmPasswordAndJoin"
+        />
       </div>
     </Modal>
   </div>
@@ -289,5 +341,11 @@ onMounted(fetchRoomList);
   outline: none;
   border-color: var(--mainColor);
   box-shadow: 0 0 0 2px rgba(92,46,14,0.15);
+}
+
+.optional {
+  font-size: 0.75rem;
+  color: var(--inkMid);
+  opacity: 0.7;
 }
 </style>
