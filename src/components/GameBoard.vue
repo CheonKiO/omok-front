@@ -73,15 +73,22 @@ defineProps({
 
 <style scoped>
 .board-wrapper {
-  min-width: 490px;
-  max-width: calc(100vh - 150px);
-  width: 80%;
+  /* 데스크탑: 사이드 열 90px×2=180px, 나머지가 보드 */
+  width: min(calc(100vw - 180px), calc(100svh - 72px - 40px));
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: 20px calc(100% - 40px) 20px;
   grid-template-rows: 20px calc(100% - 40px) 20px;
   background-color: var(--boardColor);
-  border: 2px solid black;
+  border: 2px solid var(--mainColor);
+  box-shadow: 0 4px 16px rgba(44,21,5,0.25);
+}
+
+@media (max-width: 768px) {
+  /* 모바일: 전체 너비, 높이는 남은 화면(헤더 52px + UserInfo 위아래 각 ~70px) */
+  .board-wrapper {
+    width: min(100vw, calc(100svh - 52px - 140px));
+  }
 }
 
 /* 아래 라인 넘버 */
@@ -140,11 +147,11 @@ defineProps({
   z-index: 1;
   background:
     /* 위쪽 잘라내기 */
-    linear-gradient(to bottom, rgba(205, 160, 90, 1) 0 90%, transparent 90%) top,
-    /* 아래쪽 잘라내기 */ linear-gradient(to top, rgba(205, 160, 90, 1) 0 90%, transparent 90%)
+    linear-gradient(to bottom, var(--boardColor) 0 90%, transparent 90%) top,
+    /* 아래쪽 잘라내기 */ linear-gradient(to top, var(--boardColor) 0 90%, transparent 90%)
       bottom,
-    /* 왼쪽 잘라내기 */ linear-gradient(to right, rgba(205, 160, 90, 1) 0 90%, transparent 90%) left,
-    /* 오른쪽 잘라내기 */ linear-gradient(to left, rgba(205, 160, 90, 1) 0 90%, transparent 90%)
+    /* 왼쪽 잘라내기 */ linear-gradient(to right, var(--boardColor) 0 90%, transparent 90%) left,
+    /* 오른쪽 잘라내기 */ linear-gradient(to left, var(--boardColor) 0 90%, transparent 90%)
       right;
   background-repeat: no-repeat;
   background-size:

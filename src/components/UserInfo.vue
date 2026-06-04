@@ -26,6 +26,7 @@ defineProps({
 }
 .user-info {
   width: 80%;
+  max-width: 120px;
   aspect-ratio: 1;
   padding: 7.5%;
   margin: 2.5%;
@@ -33,6 +34,18 @@ defineProps({
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media (max-width: 768px) {
+  .user-info {
+    width: 52px;
+    max-width: 52px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  /* 이름은 BoardPage의 slot-name으로 표시 */
+  .name { display: none; }
 }
 
 .user-info.active {

@@ -50,10 +50,10 @@ const login = async ({ username }) => {
 <style scoped>
 .login-container {
   display: flex;
-  justify-self: center;
-  align-self: center;
-  min-height: 70vh;
-  background-color: var(--white);
-  padding-top: 10rem;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
 }
 </style>

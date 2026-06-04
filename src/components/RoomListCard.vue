@@ -1,37 +1,61 @@
 <template>
-  <div class="card flex between">
-    <div class="flex">
-      <div class="card__title">{{ props.title }}</div>
-      <div>({{ props.personnel }}/2명)</div>
+  <div class="room-card flex between col-center">
+    <div class="room-info flex col-center gap">
+      <span class="room-icon">棋</span>
+      <div>
+        <div class="room-title">{{ props.title }}</div>
+        <div class="room-personnel">{{ props.personnel }} / 2 명</div>
+      </div>
     </div>
     <slot></slot>
   </div>
 </template>
+
 <script setup>
 const props = defineProps(['title', 'personnel', 'button']);
 </script>
+
 <style scoped>
-.card {
-  box-sizing: border-box;
-  background-color: white;
-  width: 100%;
-  padding: 1.5rem;
-  border-radius: 0.75rem; /* 더 부드럽게 */
-  margin-bottom: 1rem;
-  /* 그림자 추가 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  /* 전환 효과 */
-  transition:
-    box-shadow 0.3s ease,
-    transform 0.2s ease;
+.room-card {
+  background: linear-gradient(160deg, #fdf6e3 0%, #f0deb8 100%);
+  border: 1px solid var(--borderColor);
+  box-shadow: 0 2px 8px rgba(44,21,5,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+  border-radius: 3px;
+  padding: 1rem 1.4rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.2s, transform 0.15s;
 }
-.card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+
+.room-card:hover {
+  box-shadow: 0 4px 14px rgba(44,21,5,0.2), inset 0 1px 0 rgba(255,255,255,0.6);
+  transform: translateY(-1px);
 }
-.card__title {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-right: 1rem;
+
+.room-info {
+  gap: 0.9rem;
+}
+
+.gap { gap: 0.9rem; }
+
+.room-icon {
+  font-family: serif;
+  font-size: 1.6rem;
+  color: var(--borderColor);
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.room-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--inkColor);
+  letter-spacing: 0.02em;
+}
+
+.room-personnel {
+  font-size: 0.75rem;
+  color: var(--inkMid);
+  margin-top: 0.15rem;
+  letter-spacing: 0.03em;
 }
 </style>

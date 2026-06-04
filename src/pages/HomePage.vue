@@ -14,56 +14,38 @@ const room = ref(null);
 const roomList = ref([]);
 const isLoading = ref(false);
 const showModal = ref(false);
-
 const roomName = ref(null);
 
 const playerStore = usePlayerStore();
-const player = {
-  id: playerStore.playerId,
-  name: playerStore.username,
-};
+const player = { id: playerStore.playerId, name: playerStore.username };
 
 const router = useRouter();
-console.log(player.id); // 랜덤 UUID
 const server = useServerStore();
-// 방 생성 + 웹소켓 연결 함수
+
 async function createRoomAndConnect() {
   if (roomName.value == null || roomName.value.trim().length < 2) {
     show('방 이름은 2글자 이상이어야 합니다', 'error', 1000);
     return;
   }
   try {
-    // 1) 방 생성 API 호출
     const res = await axios.post(`${server.BASEURL}/api/rooms/create`, null, {
       params: { title: roomName.value },
     });
-
     if (res.status != 200) throw new Error('Failed to create room');
-
     room.value = await res.data;
-    console.log('Room created:', room.value);
-    // 2) join 요청
     const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, player);
-
     if (joinRes.status !== 200) throw new Error('Failed to join room');
-
-    console.log('Join success');
-
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
     console.error(error);
   }
 }
 
-// 직접 roomId로 입장 + 웹소켓 연결 함수
 async function joinRoomAndConnect(roomId) {
   try {
     room.value = roomId;
-
     const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, player);
-
     if (joinRes.status !== 200) throw new Error('Failed to join room');
-    console.log('Join success:', roomId);
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
     console.error(error);
@@ -74,7 +56,7 @@ const fetchRoomList = async () => {
   try {
     isLoading.value = true;
     const res = await axios.get(`${server.BASEURL}/api/rooms`);
-    roomList.value = res.data; // 방 정보 배열
+    roomList.value = res.data;
   } catch (error) {
     console.error('방 목록 로딩 실패:', error);
   } finally {
@@ -86,80 +68,226 @@ onMounted(fetchRoomList);
 </script>
 
 <template>
-  <div class="list">
-    <button class="refresh-btn btn" @click="fetchRoomList">🔄 새로고침</button>
+  <div class="lobby">
 
-    <div v-if="isLoading">로딩 중...</div>
+    <header class="lobby-header">
+      <h1 class="lobby-title">대 국 실</h1>
+      <p class="lobby-sub">흑과 백이 겨루는 오목 대국실입니다</p>
+    </header>
 
-    <div v-else-if="roomList.length === 0">⚠ 방이 없습니다.</div>
+    <div class="room-panel">
+      <div class="panel-toolbar">
+        <span class="panel-label">현재 대국 목록</span>
+        <button class="btn refresh-btn" @click="fetchRoomList">↻ 새로고침</button>
+      </div>
 
-    <div v-else>
-      <div class="flex dir-col">
-        <Card
-          v-for="room in roomList"
-          :key="room.roomId"
-          :title="room.title"
-          :personnel="room.players.length"
-        >
-          <button
-            @click="joinRoomAndConnect(room.roomId)"
-            :disabled="room.players.length >= 2"
-            class="btn"
+      <div class="room-list">
+        <div v-if="isLoading" class="empty-state">불러오는 중…</div>
+
+        <div v-else-if="roomList.length === 0" class="empty-state">
+          <span class="empty-icon">⊙</span>
+          <p>현재 개설된 대국방이 없습니다</p>
+          <p class="empty-hint">아래 버튼으로 대국방을 만들어보세요</p>
+        </div>
+
+        <div v-else class="flex dir-col">
+          <Card
+            v-for="room in roomList"
+            :key="room.roomId"
+            :title="room.title"
+            :personnel="room.players.length"
           >
-            입장
-          </button>
-        </Card>
+            <button
+              @click="joinRoomAndConnect(room.roomId)"
+              :disabled="room.players.length >= 2"
+              class="btn join-btn"
+            >
+              입 장
+            </button>
+          </Card>
+        </div>
       </div>
     </div>
 
-    <div class="p-10">
-      <button @click="showModal = true" class="btn circle create-btn">
-        <font-awesome-icon class="create-btn__icon" :icon="['fas', 'plus']" size="2xl" />
-      </button>
-    </div>
+    <!-- 방 만들기 버튼 -->
+    <button @click="showModal = true" class="create-btn" title="대국방 만들기">
+      <span class="create-icon">＋</span>
+    </button>
+
     <Modal
       :visible="showModal"
       @close="showModal = false"
-      :headerContent="'방 생성하기'"
-      :applyContent="'방 생성'"
+      :headerContent="'대국방 개설'"
+      :applyContent="'개설하기'"
       :applyFunction="createRoomAndConnect"
     >
-      <div>
-        <label for="room-name">방 이름</label>
-        <input type="text" name="room-name" v-model="roomName" />
+      <div class="modal-field">
+        <label for="room-name">대국방 이름</label>
+        <input type="text" id="room-name" name="room-name" v-model="roomName" placeholder="두 글자 이상 입력" />
       </div>
     </Modal>
   </div>
 </template>
 
 <style scoped>
-.list {
-  padding-top: 5rem;
-  width: 70%;
+.lobby {
+  max-width: 640px;
   margin: 0 auto;
-}
-.create-btn {
-  position: fixed;
-  bottom: 5rem;
-  right: 5rem;
-  border-radius: 50%;
-  width: 4rem;
-  height: 4rem;
-  cursor: pointer;
-  background-color: var(--mainColor);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: #fff;
-  border: none;
+  padding: 3rem 1.5rem 6rem;
+  min-height: 100svh;
+  box-sizing: border-box;
 }
 
-.create-btn__icon {
-  transition: transform 0.3s ease;
+/* 헤더 */
+.lobby-header {
+  text-align: center;
+  margin-bottom: 2.4rem;
 }
-.create-btn:hover .create-btn__icon {
-  transform: rotate(90deg);
+
+.lobby-title {
+  font-family: 'ChosunGs', serif;
+  font-size: 2.4rem;
+  color: var(--inkColor);
+  letter-spacing: 0.45em;
+  margin: 0 0 0.4rem;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+}
+
+.lobby-sub {
+  font-size: 0.8rem;
+  color: var(--inkMid);
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* 방 목록 패널 */
+.room-panel {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid var(--borderColor);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(44,21,5,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
+  overflow: hidden;
+}
+
+.panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.2rem;
+  background: linear-gradient(180deg, rgba(201,160,71,0.25) 0%, rgba(201,160,71,0.08) 100%);
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.panel-label {
+  font-size: 0.8rem;
+  font-family: 'ChosunGs', serif;
+  color: var(--inkMid);
+  letter-spacing: 0.1em;
 }
 
 .refresh-btn {
-  margin: 1rem;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  margin: 0;
+}
+
+.room-list {
+  padding: 1rem;
+  min-height: 120px;
+}
+
+/* 빈 상태 */
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--inkMid);
+  font-size: 0.88rem;
+}
+
+.empty-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.4;
+}
+
+.empty-hint {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  margin-top: 0.3rem;
+}
+
+/* 입장 버튼 */
+.join-btn {
+  font-family: 'ChosunGs', serif;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  padding: 6px 16px;
+  white-space: nowrap;
+}
+
+/* 방 만들기 플로팅 버튼 */
+.create-btn {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--inkMid) 0%, var(--mainColor) 100%);
+  border: 2px solid var(--borderColor);
+  box-shadow: 0 4px 16px rgba(44,21,5,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.create-btn:hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 6px 20px rgba(44,21,5,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.create-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.create-icon {
+  font-size: 1.8rem;
+  color: #f5e9ce;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+/* 모달 필드 */
+.modal-field {
+  margin-bottom: 0.5rem;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--inkMid);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
+}
+
+.modal-field input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 2px;
+  font-size: 0.9rem;
+  font-family: var(--app-font);
+  background: rgba(255,255,255,0.75);
+  color: var(--inkColor);
+  box-sizing: border-box;
+}
+
+.modal-field input:focus {
+  outline: none;
+  border-color: var(--mainColor);
+  box-shadow: 0 0 0 2px rgba(92,46,14,0.15);
 }
 </style>
