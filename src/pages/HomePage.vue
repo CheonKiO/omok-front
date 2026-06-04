@@ -16,6 +16,7 @@ const isLoading = ref(false);
 const showModal = ref(false);
 const roomName = ref(null);
 const roomPassword = ref('');
+const isPrivate = ref(false);
 const showPasswordModal = ref(false);
 const passwordInput = ref('');
 const pendingRoomId = ref(null);
@@ -29,6 +30,10 @@ const server = useServerStore();
 async function createRoomAndConnect() {
   if (roomName.value == null || roomName.value.trim().length < 2) {
     show('방 이름은 2글자 이상이어야 합니다', 'error', 1000);
+    return;
+  }
+  if (isPrivate.value && !roomPassword.value.trim()) {
+    show('비밀번호를 입력해주세요', 'error', 1000);
     return;
   }
   try {
@@ -144,7 +149,7 @@ onMounted(fetchRoomList);
     <!-- 방 만들기 모달 -->
     <Modal
       :visible="showModal"
-      @close="showModal = false; roomPassword = ''"
+      @close="showModal = false; roomPassword = ''; isPrivate = false"
       :headerContent="'대국방 개설'"
       :applyContent="'개설하기'"
       :applyFunction="createRoomAndConnect"
@@ -153,9 +158,21 @@ onMounted(fetchRoomList);
         <label for="room-name">대국방 이름</label>
         <input type="text" id="room-name" v-model="roomName" placeholder="두 글자 이상 입력" />
       </div>
-      <div class="modal-field">
-        <label for="room-password">비밀번호 <span class="optional">(선택)</span></label>
-        <input type="password" id="room-password" v-model="roomPassword" placeholder="설정하지 않으면 공개방" />
+      <div class="modal-toggle">
+        <button
+          class="toggle-btn"
+          :class="{ active: !isPrivate }"
+          @click="isPrivate = false; roomPassword = ''"
+        >공개</button>
+        <button
+          class="toggle-btn"
+          :class="{ active: isPrivate }"
+          @click="isPrivate = true"
+        >비공개</button>
+      </div>
+      <div class="modal-field" v-if="isPrivate">
+        <label for="room-password">비밀번호</label>
+        <input type="password" id="room-password" v-model="roomPassword" placeholder="비밀번호를 입력하세요" />
       </div>
     </Modal>
 
@@ -343,9 +360,34 @@ onMounted(fetchRoomList);
   box-shadow: 0 0 0 2px rgba(92,46,14,0.15);
 }
 
-.optional {
-  font-size: 0.75rem;
+.modal-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.45rem 0;
+  font-size: 0.82rem;
+  font-family: var(--app-font);
+  background: transparent;
+  border: none;
   color: var(--inkMid);
-  opacity: 0.7;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn.active {
+  background: var(--mainColor);
+  color: #f5e9ce;
+  font-weight: 600;
+}
+
+.toggle-btn:not(.active):hover {
+  background: rgba(92,46,14,0.06);
 }
 </style>
