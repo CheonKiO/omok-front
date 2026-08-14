@@ -1,49 +1,45 @@
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { usePlayerStore } from '@/stores/user';
-import LoginForm from '../components/LoginForm.vue';
+import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
+import AuthPanel from '@/components/AuthPanel.vue';
 
 const router = useRouter();
-const store = usePlayerStore();
+const auth = useAuthStore();
 const { show } = useToast();
-const login = async ({ username }) => {
-  const trimmedName = username.trim();
+const loading = ref(false);
 
-  if (trimmedName.length < 2) {
-    show('닉네임은 최소 2글자 이상이어야 합니다', 1000);
-    return; // 함수 종료, 로그인 처리 안 함
+async function onSubmit({ mode, payload }) {
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    if (mode === 'login') {
+      await auth.login(payload);
+    } else if (mode === 'signup') {
+      await auth.signup(payload);
+    } else {
+      await auth.guest(payload);
+    }
+    router.push({ name: 'Home' });
+  } catch (error) {
+    show(errorMessage(mode, error), 'error', 2000);
+  } finally {
+    loading.value = false;
   }
+}
 
-  store.setUsername(trimmedName); // 유저명 저장
-  store.regenerateId();
-  router.push({ name: 'Home' });
-};
+function errorMessage(mode, error) {
+  const status = error.response?.status;
+  if (mode === 'signup' && status === 409) return '이미 사용 중인 아이디입니다';
+  if (mode === 'login' && status === 401) return '아이디 또는 비밀번호가 올바르지 않습니다';
+  return '요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요';
+}
 </script>
 
 <template>
   <div class="login-container">
-    <LoginForm @login="login">
-      <template #logo>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-calendar"
-        >
-          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-          <line x1="16" x2="16" y1="2" y2="6" />
-          <line x1="8" x2="8" y1="2" y2="6" />
-          <line x1="3" x2="21" y1="10" y2="10" />
-        </svg>
-      </template>
-    </LoginForm>
+    <AuthPanel :loading="loading" @submit="onSubmit" />
   </div>
 </template>
 

@@ -6,6 +6,7 @@ import { createPinia } from 'pinia';
 
 import App from './App.vue';
 import router from './router';
+import { setupInterceptors } from '@/api/interceptors';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -23,5 +24,6 @@ app.component('font-awesome-icon', FontAwesomeIcon);
 
 app.use(createPinia());
 app.use(router);
+setupInterceptors(router);
 
 app.mount('#app');

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { usePlayerStore } from '@/stores/user.js';
+import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import { useWebSocketStore } from '@/stores/websocket';
 //지연로딩
@@ -20,8 +20,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const playerStore = usePlayerStore();
-  const isLoggedIn = !!playerStore.playerId && !!playerStore.username;
+  const isLoggedIn = useAuthStore().isAuthenticated;
   const goingToLogin = to.path === '/login';
   const { show } = useToast();
 

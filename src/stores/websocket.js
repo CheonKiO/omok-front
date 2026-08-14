@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useServerStore } from './server';
+import { useAuthStore } from './auth';
 
 export const useWebSocketStore = defineStore('websocket', () => {
   const stompClient = ref(null);
@@ -26,8 +27,12 @@ export const useWebSocketStore = defineStore('websocket', () => {
     roomId.value = newRoomId;
     saveRoomId(newRoomId);
 
+    const accessToken = useAuthStore().accessToken;
+
     stompClient.value = new Client({
       webSocketFactory: () => new SockJS(`${baseUrl}/game`, null, { withCredentials: false }),
+      // CONNECT 프레임 네이티브 헤더로 JWT 전달 → 서버 principal 바인딩 (게스트도 토큰 있음)
+      connectHeaders: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       reconnectDelay: 5000,
       onConnect: () => {
         console.log('✅ STOMP 연결 완료');
