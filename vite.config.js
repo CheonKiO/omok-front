@@ -15,4 +15,11 @@ export default defineConfig({
   define: {
     global: 'window',
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js'],
+  },
 });

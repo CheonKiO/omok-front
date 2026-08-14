@@ -1,46 +1,31 @@
-import { ref, computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWebSocketStore } from '@/stores/websocket';
-import { useServerStore } from '@/stores/server';
 import { useToast } from '@/composable/useToast';
 import { isForbidden } from '@/composable/useGameLogic';
-import axios from 'axios';
+import { useGameState } from '@/composable/useGameState';
+import { useReconnectCountdown } from '@/composable/useReconnectCountdown';
+import { useGameMessages } from '@/composable/useGameMessages';
+import { getRoom, leaveRoom } from '@/api/rooms';
 
-const SIZE = 15;
-
+// 상태(useGameState) / 메시지(useGameMessages) / 재접속(useReconnectCountdown)을
+// 조합하는 오케스트레이터. 게임 액션·REST 로드·방 나가기를 담당한다.
 export function useGameRoom(roomNo, player) {
   const router = useRouter();
   const ws = useWebSocketStore();
-  const server = useServerStore();
   const { show } = useToast();
 
-  const timerRef = ref(null);
+  const state = useGameState();
+  const { room, opponent, lastIndex, moveHistory, myStoneIsBlack, timerRef, isMyTurn } = state;
 
-  const room = reactive({
-    title: '',
-    roomId: '',
-    turn: 1,
-    board: Array(SIZE * SIZE).fill(null),
-    isPlaying: false,
-  });
+  const reconnect = useReconnectCountdown();
+  const { opponentDisconnected, reconnectCountdown } = reconnect;
 
-  const opponent = reactive({ id: null, name: null, ready: false });
-  const lastIndex = ref(null);
-  const moveHistory = ref([]);
-  const myStoneIsBlack = ref(null);
-  const opponentDisconnected = ref(false);
-  const reconnectCountdown = ref(30);
-  let reconnectTimer = null;
-
-  const isMyTurn = computed(() => {
-    const isBlackTurn = room.turn % 2 === 1;
-    return myStoneIsBlack.value === isBlackTurn;
-  });
+  const { handleMessage } = useGameMessages({ state, reconnect, player, show });
 
   // ── 데이터 로드 ────────────────────────────────────────────
 
   async function load() {
-    const { data } = await axios.get(`${server.BASEURL}/api/rooms/${roomNo}`);
+    const { data } = await getRoom(roomNo);
     room.title = data.title;
     room.roomId = data.roomId;
     room.turn = data.turn;
@@ -110,100 +95,13 @@ export function useGameRoom(roomNo, player) {
 
   async function disconnect() {
     try {
-      await axios.post(`${server.BASEURL}/api/rooms/leave/${roomNo}`, null, {
-        params: { playerId: player.id },
-      });
+      await leaveRoom(roomNo, player.id);
     } catch (e) {
       console.error('방 나가기 오류 발생:', e);
     } finally {
+      reconnect.clear();
       ws.disconnect();
       router.push({ name: 'Home' });
-    }
-  }
-
-  // ── WebSocket 메시지 처리 ─────────────────────────────────
-
-  function handleMessage(msg) {
-    switch (msg.type) {
-      case 'JOIN':
-        if (msg.sender === player.id) return;
-        opponent.name = msg.message;
-        opponent.id = msg.sender;
-        show(`${msg.message}님이 입장하셨습니다`);
-        break;
-
-      case 'GAME_START':
-        room.isPlaying = true;
-        room.turn = 1;
-        room.board = Array(SIZE * SIZE).fill(null);
-        player.ready = false;
-        opponent.ready = false;
-        lastIndex.value = null;
-        moveHistory.value = [];
-        myStoneIsBlack.value = msg.blackPlayer === player.id;
-        show('게임이 시작되었습니다.', 'info', 2000);
-        break;
-
-      case 'ACTION':
-        room.board[msg.index] = room.turn;
-        room.turn = msg.turn;
-        lastIndex.value = msg.index;
-        moveHistory.value.push(msg.index);
-        break;
-
-      case 'GAME_END':
-        if (msg.index != null && msg.turn != null) {
-          room.board[msg.index] = room.turn;
-          room.turn = msg.turn;
-          lastIndex.value = msg.index;
-          moveHistory.value.push(msg.index);
-        }
-        room.isPlaying = false;
-        show(msg.message, 'info');
-        break;
-
-      case 'DISCONNECTED':
-        if (!opponent.id || msg.sender !== opponent.id) return;
-        opponentDisconnected.value = true;
-        reconnectCountdown.value = 30;
-        show(`${opponent.name}님 연결 끊김. 30초 내 재연결되지 않으면 게임이 종료됩니다.`, 'info', 4000);
-        reconnectTimer = setInterval(() => {
-          reconnectCountdown.value--;
-          if (reconnectCountdown.value <= 0) clearInterval(reconnectTimer);
-        }, 1000);
-        break;
-
-      case 'RECONNECT':
-        if (!opponent.id || msg.sender !== opponent.id) return;
-        opponentDisconnected.value = false;
-        clearInterval(reconnectTimer);
-        reconnectCountdown.value = 30;
-        show(`${opponent.name}님이 재연결되었습니다.`, 'info');
-        break;
-
-      case 'LEAVE':
-        if (!opponent.id || msg.sender !== opponent.id) return;
-        opponentDisconnected.value = false;
-        clearInterval(reconnectTimer);
-        room.board = Array(SIZE * SIZE).fill(null);
-        show(`${opponent.name} 님이 방을 나갔습니다`);
-        opponent.id = null;
-        opponent.name = null;
-        opponent.ready = false;
-        player.ready = false;
-        break;
-
-      case 'READY':
-        if (msg.sender === player.id) { player.ready = true; return; }
-        opponent.ready = true;
-        show(msg.message + '님 준비 완료');
-        break;
-
-      case 'CANCEL':
-        if (msg.sender === player.id) player.ready = false;
-        else opponent.ready = false;
-        show(msg.message + '님이 준비를 취소하셨습니다');
-        break;
     }
   }
 

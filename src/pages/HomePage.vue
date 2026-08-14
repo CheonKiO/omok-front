@@ -1,11 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-import { useServerStore } from '@/stores/server';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
+import { createRoom, joinRoom, fetchRooms } from '@/api/rooms';
 import Card from '@/components/RoomListCard.vue';
 import Modal from '@/components/ModalComp.vue';
 
@@ -26,7 +25,6 @@ const playerStore = usePlayerStore();
 const player = { id: playerStore.playerId, name: playerStore.username };
 
 const router = useRouter();
-const server = useServerStore();
 
 const authStore = useAuthStore();
 const displayName = computed(() => authStore.nickname ?? '손님');
@@ -49,11 +47,11 @@ async function createRoomAndConnect() {
   try {
     const params = { title: roomName.value };
     if (roomPassword.value.trim()) params.password = roomPassword.value.trim();
-    const res = await axios.post(`${server.BASEURL}/api/rooms/create`, null, { params });
+    const res = await createRoom(params);
     if (res.status !== 200) throw new Error('Failed to create room');
     room.value = res.data;
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${room.value}`, player,
-      { params: roomPassword.value.trim() ? { password: roomPassword.value.trim() } : {} }
+    const joinRes = await joinRoom(room.value, player,
+      roomPassword.value.trim() ? { password: roomPassword.value.trim() } : {}
     );
     if (joinRes.status !== 200) throw new Error('Failed to join room');
     router.push({ name: 'Room', params: { roomNo: room.value } });
@@ -80,7 +78,7 @@ async function joinRoomAndConnect(roomId, password) {
   try {
     room.value = roomId;
     const params = password ? { password } : {};
-    const joinRes = await axios.post(`${server.BASEURL}/api/rooms/join/${roomId}`, player, { params });
+    const joinRes = await joinRoom(roomId, player, params);
     if (joinRes.status !== 200) throw new Error('Failed to join room');
     showPasswordModal.value = false;
     router.push({ name: 'Room', params: { roomNo: room.value } });
@@ -96,7 +94,7 @@ async function joinRoomAndConnect(roomId, password) {
 const fetchRoomList = async () => {
   try {
     isLoading.value = true;
-    const res = await axios.get(`${server.BASEURL}/api/rooms`);
+    const res = await fetchRooms();
     roomList.value = res.data;
   } catch (error) {
     console.error('방 목록 로딩 실패:', error);
