@@ -15,4 +15,8 @@ export default defineConfig({
   define: {
     global: 'window',
   },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js'],
+  },
 });
