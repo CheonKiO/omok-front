@@ -1,19 +1,17 @@
 import { useRouter } from 'vue-router';
 import { useWebSocketStore } from '@/stores/websocket';
-import { useServerStore } from '@/stores/server';
 import { useToast } from '@/composable/useToast';
 import { isForbidden } from '@/composable/useGameLogic';
 import { useGameState } from '@/composable/useGameState';
 import { useReconnectCountdown } from '@/composable/useReconnectCountdown';
 import { useGameMessages } from '@/composable/useGameMessages';
-import axios from 'axios';
+import { getRoom, leaveRoom } from '@/api/rooms';
 
 // 상태(useGameState) / 메시지(useGameMessages) / 재접속(useReconnectCountdown)을
 // 조합하는 오케스트레이터. 게임 액션·REST 로드·방 나가기를 담당한다.
 export function useGameRoom(roomNo, player) {
   const router = useRouter();
   const ws = useWebSocketStore();
-  const server = useServerStore();
   const { show } = useToast();
 
   const state = useGameState();
@@ -27,7 +25,7 @@ export function useGameRoom(roomNo, player) {
   // ── 데이터 로드 ────────────────────────────────────────────
 
   async function load() {
-    const { data } = await axios.get(`${server.BASEURL}/api/rooms/${roomNo}`);
+    const { data } = await getRoom(roomNo);
     room.title = data.title;
     room.roomId = data.roomId;
     room.turn = data.turn;
@@ -97,9 +95,7 @@ export function useGameRoom(roomNo, player) {
 
   async function disconnect() {
     try {
-      await axios.post(`${server.BASEURL}/api/rooms/leave/${roomNo}`, null, {
-        params: { playerId: player.id },
-      });
+      await leaveRoom(roomNo, player.id);
     } catch (e) {
       console.error('방 나가기 오류 발생:', e);
     } finally {
