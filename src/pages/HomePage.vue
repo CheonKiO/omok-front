@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useServerStore } from '@/stores/server';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import Card from '@/components/RoomListCard.vue';
 import Modal from '@/components/ModalComp.vue';
@@ -26,6 +27,15 @@ const player = { id: playerStore.playerId, name: playerStore.username };
 
 const router = useRouter();
 const server = useServerStore();
+
+const authStore = useAuthStore();
+const displayName = computed(() => authStore.nickname ?? '손님');
+const isGuest = computed(() => authStore.role === 'GUEST');
+
+function handleLogout() {
+  authStore.logout();
+  router.push('/login');
+}
 
 async function createRoomAndConnect() {
   if (roomName.value == null || roomName.value.trim().length < 2) {
@@ -100,6 +110,15 @@ onMounted(fetchRoomList);
 
 <template>
   <div class="lobby">
+
+    <div class="user-bar">
+      <span class="user-name">
+        <span class="user-dot" :class="isGuest ? 'guest' : 'member'"></span>
+        {{ displayName }}
+        <span class="user-role">{{ isGuest ? '게스트' : '회원' }}</span>
+      </span>
+      <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
+    </div>
 
     <header class="lobby-header">
       <h1 class="lobby-title">대 국 실</h1>
@@ -205,6 +224,52 @@ onMounted(fetchRoomList);
   padding: 3rem 1.5rem 6rem;
   min-height: 100svh;
   box-sizing: border-box;
+}
+
+/* 유저 바 */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+}
+
+.user-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--inkColor);
+  letter-spacing: 0.03em;
+}
+
+.user-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-dot.member {
+  background: radial-gradient(circle at 35% 35%, #666, #111);
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.user-dot.guest {
+  background: radial-gradient(circle at 35% 35%, #fff, #bbb);
+  border: 1px solid #aaa;
+}
+
+.user-role {
+  font-size: 0.72rem;
+  color: var(--inkMid);
+  opacity: 0.75;
+}
+
+.logout-btn {
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  margin: 0;
 }
 
 /* 헤더 */
