@@ -328,32 +328,28 @@ label {
 .login-button {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(180deg, var(--inkMid) 0%, var(--mainColor) 100%);
-  color: #f5e9ce;
-  border: 1px solid var(--mainColor);
+  background: linear-gradient(180deg, #6b3a1f 0%, #4a2410 100%);
+  color: #f3ecd6;
+  border: none;
   border-radius: 3px;
   font-size: 1rem;
   font-family: 'ChosunGs', serif;
   font-weight: normal;
   letter-spacing: 0.3em;
   cursor: pointer;
-  box-shadow:
-    0 3px 8px rgba(44, 21, 5, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: all 0.2s ease;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 5px rgba(44, 21, 5, 0.22);
+  transition: background 0.2s ease, transform 0.1s ease;
   margin-top: 0.4rem;
 }
 
 .login-button:hover:not(:disabled) {
-  background: linear-gradient(180deg, #7c4a1e 0%, #3d1f0d 100%);
-  box-shadow:
-    0 4px 12px rgba(44, 21, 5, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, #7c4a2a 0%, #5c2e0e 100%);
 }
 
 .login-button:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(44, 21, 5, 0.3);
+  box-shadow: inset 0 1px 3px rgba(20, 10, 0, 0.3);
 }
 
 .login-button:disabled {

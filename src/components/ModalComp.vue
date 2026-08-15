@@ -8,7 +8,7 @@
       <div class="modal-body">
         <slot></slot>
       </div>
-      <button class="apply-btn" @click="applyFunction">{{ applyContent }}</button>
+      <button class="apply-btn" :class="applyVariant" @click="applyFunction">{{ applyContent }}</button>
     </div>
   </div>
 </template>
@@ -19,6 +19,7 @@ defineProps({
   headerContent: String,
   applyContent: String,
   applyFunction: Function,
+  applyVariant: { type: String, default: 'create' }, // 'create'(군청) | 'join'(주홍)
 });
 const emit = defineEmits(['close']);
 const close = () => emit('close');
@@ -89,25 +90,29 @@ const close = () => emit('close');
 .apply-btn {
   margin-top: 1rem;
   width: 100%;
-  background: linear-gradient(180deg, var(--inkMid) 0%, var(--mainColor) 100%);
-  color: #f5e9ce;
+  color: #f3ecd6;
   padding: 10px;
-  border: 1px solid var(--mainColor);
+  border: none;
   border-radius: 3px;
   font-size: 0.95rem;
   font-family: 'ChosunGs', serif;
   letter-spacing: 0.2em;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(44,21,5,0.25);
-  transition: all 0.15s ease;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+  box-shadow: 0 2px 5px rgba(44,21,5,0.2);
+  transition: background 0.15s ease, transform 0.1s ease;
+  /* 기본(개설) = 군청, 로비 '대국방 개설' 버튼과 동일 반투명 톤. 변형 미적용 시에도 색 보장 */
+  background: linear-gradient(180deg, rgba(63,81,112,0.82) 0%, rgba(43,58,85,0.86) 100%);
 }
 
-.apply-btn:hover {
-  background: linear-gradient(180deg, #7c4a1e 0%, #3d1f0d 100%);
-  box-shadow: 0 3px 10px rgba(44,21,5,0.35);
-}
+.apply-btn.create:hover { background: linear-gradient(180deg, rgba(78,98,132,0.9) 0%, rgba(54,72,102,0.92) 100%); }
+
+/* 입장 = 주홍 (로비 '입장' 버튼과 동일 반투명 톤) */
+.apply-btn.join { background: linear-gradient(180deg, rgba(154,68,54,0.85) 0%, rgba(122,47,36,0.88) 100%); }
+.apply-btn.join:hover { background: linear-gradient(180deg, rgba(168,80,64,0.92) 0%, rgba(136,56,44,0.94) 100%); }
 
 .apply-btn:active {
   transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(20,10,0,0.3);
 }
 </style>
