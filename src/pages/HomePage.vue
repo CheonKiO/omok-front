@@ -30,8 +30,8 @@ const authStore = useAuthStore();
 const displayName = computed(() => authStore.nickname ?? '손님');
 const isGuest = computed(() => authStore.role === 'GUEST');
 
-function handleLogout() {
-  authStore.logout();
+async function handleLogout() {
+  await authStore.logout();
   router.push('/login');
 }
 
