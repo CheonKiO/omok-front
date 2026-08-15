@@ -15,6 +15,9 @@
 | Routing | Vue Router |
 | Build | Vite |
 | Realtime | STOMP over SockJS |
+| HTTP | axios |
+| Test | vitest |
+| Design | 바닐라 CSS + CSS 변수 디자인 토큰 + Vue scoped style (CSS 프레임워크 없음) |
 | Deploy | GitHub Pages (GitHub Actions 자동 배포) |
 
 <br>
@@ -24,21 +27,58 @@
 ```
 src/
 ├── pages/
-│   ├── HomePage.vue       # 방 목록
-│   ├── BoardPage.vue      # 게임 보드
-│   └── LoginPage.vue
+│   ├── HomePage.vue       # 로비 '대국실' — 방 목록 · 개설
+│   ├── BoardPage.vue      # 게임 보드 (/room/:roomNo)
+│   ├── LoginPage.vue      # 로그인 · 회원가입 · 게스트
+│   ├── GamesPage.vue      # '대국 기록부' — 내 기보 목록 (/games)
+│   └── ReplayPage.vue     # '복기' — 착수 재생 (/games/:id)
 ├── components/
-│   ├── GameBoard.vue      # 15x15 보드 렌더링
+│   ├── GameBoard.vue      # 15x15 보드 렌더링 (대국 · 복기 공용)
+│   ├── AuthPanel.vue      # 로그인 · 회원가입 · 게스트 탭
+│   ├── ModalComp.vue      # 방 개설 · 입장 모달
 │   ├── RoomListCard.vue
 │   ├── TimerComp.vue
-│   └── ToastMessage.vue
+│   ├── ToastMessage.vue
+│   └── UserInfo.vue
 ├── composable/
-│   ├── useGameRoom.js     # 방 상태 · 게임 액션 · 메시지 처리
-│   ├── useGameLogic.js    # 금수 판정 (즉각 피드백용)
+│   ├── useGameRoom.js         # 방 상태 · 게임 액션 · 메시지 처리
+│   ├── useGameMessages.js     # STOMP 메시지 파싱 · 디스패치
+│   ├── useGameState.js        # 게임 상태 모델
+│   ├── useGameLogic.js        # 금수 판정 (즉각 피드백용)
+│   ├── useReconnectCountdown.js
 │   └── useToast.js
-├── stores/                # user · websocket · server (Pinia)
+├── api/
+│   ├── rooms.js           # 방 REST
+│   ├── games.js           # 기보 REST
+│   └── interceptors.js    # JWT 부착 + 401 자동 refresh 재시도
+├── stores/                # auth · player(user.js) · server · websocket (Pinia)
 └── router/
+    └── index.js           # 라우트 + 인증 가드
 ```
+
+<br>
+
+## 주요 기능
+
+### 인증 (JWT)
+
+로그인 · 회원가입 · 게스트 세 방식을 지원합니다. 발급된 accessToken / refreshToken은 `localStorage`에 저장하고 `auth` 스토어가 관리합니다.
+
+axios 인터셉터(`src/api/interceptors.js`)가 모든 요청에 `Bearer` 헤더를 부착하고, 401 응답 시 **single-flight**로 refresh를 1회만 수행한 뒤 원래 요청을 재시도합니다. refresh 토큰이 없는 게스트는 바로 로그아웃 처리합니다. 라우터 가드(`src/router/index.js`)가 미인증 접근을 로그인 페이지로 리다이렉트합니다.
+
+### 기보 · 복기
+
+종료된 대국은 서버에 기보로 남습니다. `/games`('대국 기록부')에서 내 기보 목록(회원만)을 조회하고, `/games/:id`('복기')에서 재생합니다.
+
+복기 화면은 대국용 `GameBoard.vue`를 재사용해 착수마다 **수 번호가 적힌 돌**을 렌더링하고, 처음/이전/다음/끝 스텝퍼와 **←/→ 키**로 수를 넘깁니다. REST 호출은 `src/api/games.js`에 모여 있습니다.
+
+### 디자인 시스템 (antique)
+
+바둑 · 장기의 우드톤, 종이 질감 배경, 반투명 패널로 통일한 고풍 테마입니다. 색·폰트 등 토큰은 `src/assets/main.css`의 CSS 변수로 정의합니다.
+
+- **폰트**: 제목 `ChosunGs`(serif) + 본문 `Pretendard`
+- **버튼 색 위계**: 일반 = 호두 갈색 / 방 개설 = 군청 / 입장 = 주홍 (무광 · 반투명)
+- 모달 · 로그인 · 기록부 · 복기 화면까지 같은 톤으로 통일
 
 <br>
 
