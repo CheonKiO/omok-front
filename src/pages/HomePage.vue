@@ -30,8 +30,8 @@ const authStore = useAuthStore();
 const displayName = computed(() => authStore.nickname ?? '손님');
 const isGuest = computed(() => authStore.role === 'GUEST');
 
-function handleLogout() {
-  authStore.logout();
+async function handleLogout() {
+  await authStore.logout();
   router.push('/login');
 }
 
@@ -115,9 +115,13 @@ onMounted(fetchRoomList);
         {{ displayName }}
         <span class="user-role">{{ isGuest ? '게스트' : '회원' }}</span>
       </span>
-      <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
+      <span class="bar-actions">
+        <button v-if="!isGuest" class="btn kifu-btn" @click="router.push('/games')">내 기보</button>
+        <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
+      </span>
     </div>
 
+    <div class="lobby-main">
     <header class="lobby-header">
       <h1 class="lobby-title">대 국 실</h1>
       <p class="lobby-sub">흑과 백이 겨루는 오목 대국실입니다</p>
@@ -126,7 +130,12 @@ onMounted(fetchRoomList);
     <div class="room-panel">
       <div class="panel-toolbar">
         <span class="panel-label">현재 대국 목록</span>
-        <button class="btn refresh-btn" @click="fetchRoomList">↻ 새로고침</button>
+        <div class="toolbar-actions">
+          <button class="btn refresh-btn" @click="fetchRoomList">↻ 새로고침</button>
+          <button class="create-plaque" @click="showModal = true">
+            <span class="create-icon">＋</span>대국방 개설
+          </button>
+        </div>
       </div>
 
       <div class="room-list">
@@ -135,7 +144,7 @@ onMounted(fetchRoomList);
         <div v-else-if="roomList.length === 0" class="empty-state">
           <span class="empty-icon">⊙</span>
           <p>현재 개설된 대국방이 없습니다</p>
-          <p class="empty-hint">아래 버튼으로 대국방을 만들어보세요</p>
+          <p class="empty-hint">상단 개설 버튼으로 대국방을 만들어보세요</p>
         </div>
 
         <div v-else class="flex dir-col">
@@ -157,11 +166,7 @@ onMounted(fetchRoomList);
         </div>
       </div>
     </div>
-
-    <!-- 방 만들기 버튼 -->
-    <button @click="showModal = true" class="create-btn" title="대국방 만들기">
-      <span class="create-icon">＋</span>
-    </button>
+    </div>
 
     <!-- 방 만들기 모달 -->
     <Modal
@@ -199,6 +204,7 @@ onMounted(fetchRoomList);
       @close="showPasswordModal = false"
       :headerContent="'비밀번호 입력'"
       :applyContent="'입장하기'"
+      applyVariant="join"
       :applyFunction="confirmPasswordAndJoin"
     >
       <div class="modal-field">
@@ -217,11 +223,22 @@ onMounted(fetchRoomList);
 
 <style scoped>
 .lobby {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 6rem;
+  padding: 1.5rem 1.5rem 3rem;
   min-height: 100svh;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 유저바 아래 남는 공간에 헤더+목록을 세로 중앙 배치 */
+.lobby-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 3rem;
 }
 
 /* 유저 바 */
@@ -264,7 +281,13 @@ onMounted(fetchRoomList);
   opacity: 0.75;
 }
 
-.logout-btn {
+.bar-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.logout-btn,
+.kifu-btn {
   font-size: 0.78rem;
   padding: 4px 12px;
   margin: 0;
@@ -317,15 +340,21 @@ onMounted(fetchRoomList);
   letter-spacing: 0.1em;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .refresh-btn {
-  font-size: 0.8rem;
-  padding: 4px 12px;
+  font-size: 0.82rem;
+  padding: 6px 16px;
   margin: 0;
 }
 
 .room-list {
-  padding: 1rem;
-  min-height: 120px;
+  padding: 1.25rem;
+  min-height: 300px;
 }
 
 /* 빈 상태 */
@@ -356,40 +385,48 @@ onMounted(fetchRoomList);
   font-size: 0.85rem;
   padding: 6px 16px;
   white-space: nowrap;
+  color: #f3ecd6;
+  background: linear-gradient(180deg, rgba(154, 68, 54, 0.85) 0%, rgba(122, 47, 36, 0.88) 100%);
+  box-shadow: 0 1px 2px rgba(80, 30, 22, 0.24);
 }
 
-/* 방 만들기 플로팅 버튼 */
-.create-btn {
-  position: fixed;
-  bottom: 2.5rem;
-  right: 2.5rem;
-  width: 3.6rem;
-  height: 3.6rem;
-  border-radius: 50%;
-  background: linear-gradient(145deg, var(--inkMid) 0%, var(--mainColor) 100%);
-  border: 2px solid var(--borderColor);
-  box-shadow: 0 4px 16px rgba(44,21,5,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-  cursor: pointer;
-  display: flex;
+.join-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(168, 80, 64, 0.92) 0%, rgba(136, 56, 44, 0.94) 100%);
+  color: #f3ecd6;
+}
+
+/* 방 개설 명패 버튼 (군청 강조) */
+.create-plaque {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  gap: 7px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--app-font);
+  letter-spacing: 0.04em;
+  color: #f3ecd6;
+  background: linear-gradient(180deg, rgba(63, 81, 112, 0.82) 0%, rgba(43, 58, 85, 0.86) 100%);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 5px rgba(30, 40, 60, 0.24);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.create-btn:hover {
-  transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 6px 20px rgba(44,21,5,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+.create-plaque:hover {
+  background: linear-gradient(180deg, rgba(78, 98, 132, 0.9) 0%, rgba(54, 72, 102, 0.92) 100%);
 }
 
-.create-btn:active {
-  transform: translateY(0) scale(0.97);
+.create-plaque:active {
+  transform: translateY(0.5px);
+  box-shadow: inset 0 1px 3px rgba(20, 40, 34, 0.4);
 }
 
 .create-icon {
-  font-size: 1.8rem;
-  color: #f5e9ce;
+  font-size: 1.05rem;
   line-height: 1;
-  margin-top: -2px;
 }
 
 /* 모달 필드 */
@@ -435,8 +472,9 @@ onMounted(fetchRoomList);
 .toggle-btn {
   flex: 1;
   padding: 0.45rem 0;
-  font-size: 0.82rem;
-  font-family: var(--app-font);
+  font-size: 0.85rem;
+  font-family: 'ChosunGs', serif;
+  letter-spacing: 0.08em;
   background: transparent;
   border: none;
   color: var(--inkMid);

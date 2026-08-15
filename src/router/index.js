@@ -6,6 +6,8 @@ import { useWebSocketStore } from '@/stores/websocket';
 const Room = () => import('@/pages/BoardPage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
 const Home = () => import('@/pages/HomePage.vue');
+const Games = () => import('@/pages/GamesPage.vue');
+const Replay = () => import('@/pages/ReplayPage.vue');
 // const NotFound = () => import('');
 
 const router = createRouter({
@@ -14,6 +16,8 @@ const router = createRouter({
     //라우트 :path는 /소문자, component는 대문자로 시작하는 카멜케이스
     { name: 'Home', path: '/', component: Home },
     { name: 'Room', path: '/room/:roomNo', component: Room },
+    { name: 'Games', path: '/games', component: Games },
+    { name: 'Replay', path: '/games/:id', component: Replay },
     { name: 'Login', path: '/login', component: Login },
     // { path: '/:paths(.*)*', name: 'NotFound', component: NotFound },
   ],
