@@ -115,7 +115,10 @@ onMounted(fetchRoomList);
         {{ displayName }}
         <span class="user-role">{{ isGuest ? '게스트' : '회원' }}</span>
       </span>
-      <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
+      <span class="bar-actions">
+        <button v-if="!isGuest" class="btn kifu-btn" @click="router.push('/games')">내 기보</button>
+        <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
+      </span>
     </div>
 
     <header class="lobby-header">
@@ -264,7 +267,13 @@ onMounted(fetchRoomList);
   opacity: 0.75;
 }
 
-.logout-btn {
+.bar-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.logout-btn,
+.kifu-btn {
   font-size: 0.78rem;
   padding: 4px 12px;
   margin: 0;
