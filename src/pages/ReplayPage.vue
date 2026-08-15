@@ -102,9 +102,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 .replay {
   max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
+  padding: 1.5rem 1rem;
   min-height: 100svh;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 복기 보드: 대국 화면용 폭 공식 대신 복기 컨테이너/화면높이에 맞춰 축소 → 스크롤 방지·중앙 정렬 */
+.replay :deep(.board-wrapper) {
+  width: min(100%, calc(100svh - 320px));
+  margin: 0.5rem auto;
 }
 
 .replay-header {

@@ -41,13 +41,19 @@ onMounted(async () => {
 
 <template>
   <div class="archive">
+    <div class="archive-main">
     <header class="archive-header">
-      <button class="btn back-btn" @click="router.push('/')">← 대국실</button>
       <h1 class="archive-title">대 국 기 록 부</h1>
-      <span class="archive-count" v-if="!isLoading">{{ games.length }}판</span>
+      <p class="archive-sub">지난 대국의 기보를 다시 살펴봅니다</p>
     </header>
 
     <div class="record-panel">
+      <div class="panel-toolbar">
+        <span class="panel-label">내 기록<span v-if="!isLoading"> · {{ games.length }}판</span></span>
+        <button class="btn back-btn" @click="router.push('/')">← 대국실</button>
+      </div>
+
+      <div class="record-body">
       <div v-if="isLoading" class="empty-state">불러오는 중…</div>
 
       <div v-else-if="games.length === 0" class="empty-state">
@@ -75,49 +81,49 @@ onMounted(async () => {
           <span class="chevron">›</span>
         </li>
       </ul>
+      </div>
+    </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* 대국실(HomePage)과 동일한 셸/패널 구조·값 */
 .archive {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 2.4rem 1.5rem 4rem;
+  padding: 1.5rem 1.5rem 3rem;
   min-height: 100svh;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 짧으면 세로 중앙, 목록이 길어지면 auto 여백이 0으로 접혀 위부터 스크롤 */
+.archive-main {
+  margin-block: auto;
+  width: 100%;
 }
 
 .archive-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.8rem;
-}
-
-.back-btn {
-  font-size: 0.8rem;
-  padding: 5px 12px;
-  margin: 0;
-  white-space: nowrap;
+  text-align: center;
+  margin-bottom: 2.4rem;
 }
 
 .archive-title {
-  flex: 1;
-  text-align: center;
   font-family: 'ChosunGs', serif;
-  font-size: 1.7rem;
+  font-size: 2.4rem;
   color: var(--inkColor);
-  letter-spacing: 0.3em;
-  margin: 0;
+  letter-spacing: 0.45em;
+  margin: 0 0 0.4rem;
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-.archive-count {
+.archive-sub {
   font-size: 0.8rem;
   color: var(--inkMid);
-  font-family: 'ChosunGs', serif;
-  white-space: nowrap;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
 .record-panel {
@@ -126,7 +132,33 @@ onMounted(async () => {
   border-radius: 4px;
   box-shadow: 0 4px 16px rgba(44, 21, 5, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   overflow: hidden;
-  min-height: 140px;
+}
+
+.panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.2rem;
+  background: linear-gradient(180deg, rgba(201,160,71,0.25) 0%, rgba(201,160,71,0.08) 100%);
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.panel-label {
+  font-size: 0.8rem;
+  font-family: 'ChosunGs', serif;
+  color: var(--inkMid);
+  letter-spacing: 0.1em;
+}
+
+.back-btn {
+  font-size: 0.82rem;
+  padding: 6px 16px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.record-body {
+  min-height: 300px;
 }
 
 .empty-state {
