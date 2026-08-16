@@ -353,7 +353,7 @@ onMounted(fetchRoomList);
 .modal-field label {
   display: block;
   font-size: 0.82rem;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   margin-bottom: 0.4rem;
   letter-spacing: 0.04em;
 }
@@ -361,26 +361,26 @@ onMounted(fetchRoomList);
 .modal-field input {
   width: 100%;
   padding: 0.6rem 0.85rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--gold);
   border-radius: 2px;
   font-size: 0.9rem;
   font-family: var(--app-font);
-  background: rgba(255,255,255,0.75);
-  color: var(--inkColor);
+  background: rgba(255,255,255,0.7);
+  color: var(--ink);
   box-sizing: border-box;
 }
 
 .modal-field input:focus {
   outline: none;
-  border-color: var(--mainColor);
-  box-shadow: 0 0 0 2px rgba(92,46,14,0.15);
+  border-color: var(--ju);
+  box-shadow: 0 0 0 2px rgba(154,58,45,0.15);
 }
 
 .modal-toggle {
   display: flex;
   gap: 0;
   margin-bottom: 0.75rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--ink);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -389,22 +389,22 @@ onMounted(fetchRoomList);
   flex: 1;
   padding: 0.45rem 0;
   font-size: 0.85rem;
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   letter-spacing: 0.08em;
   background: transparent;
   border: none;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .toggle-btn.active {
-  background: var(--mainColor);
-  color: #f5e9ce;
+  background: var(--ink);
+  color: #f2e8d4;
   font-weight: 600;
 }
 
 .toggle-btn:not(.active):hover {
-  background: rgba(92,46,14,0.06);
+  background: rgba(33,28,22,0.06);
 }
 </style>

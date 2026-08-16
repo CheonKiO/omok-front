@@ -62,23 +62,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <template>
   <div class="replay">
-    <header class="replay-header">
-      <button class="btn back-btn" @click="router.push('/games')">← 기록부</button>
-      <h1 class="replay-title">복 기</h1>
-      <span class="spacer"></span>
-    </header>
+    <h1 class="rtitle">복기</h1>
 
     <div v-if="game" class="matchup">
       <span class="side" :class="{ won: game.winner === 'BLACK' }">
-        <span class="stone-dot black"></span>{{ game.blackName }}
+        <span class="stone black"></span>{{ game.blackName }}
       </span>
       <span class="vs">대</span>
       <span class="side" :class="{ won: game.winner === 'WHITE' }">
-        {{ game.whiteName }}<span class="stone-dot white"></span>
+        {{ game.whiteName }}<span class="stone white"></span>
       </span>
     </div>
     <p v-if="game" class="verdict">
-      {{ game.winner === 'BLACK' ? '흑' : '백' }} 승 · {{ REASON_LABEL[game.endReason] ?? game.endReason }}
+      <b>{{ game.winner === 'BLACK' ? '흑' : '백' }} 승</b>
+      · {{ REASON_LABEL[game.endReason] ?? game.endReason }}
     </p>
 
     <GameBoard
@@ -88,11 +85,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
     />
 
     <div class="controls" v-if="!isLoading">
-      <button class="btn step-btn" @click="first" :disabled="step === 0" title="처음">⏮</button>
-      <button class="btn step-btn" @click="prev" :disabled="step === 0" title="이전">◂</button>
-      <span class="counter">{{ step }} / {{ total }}수</span>
-      <button class="btn step-btn" @click="next" :disabled="step === total" title="다음">▸</button>
-      <button class="btn step-btn" @click="last" :disabled="step === total" title="끝">⏭</button>
+      <button class="step" @click="first" :disabled="step === 0" title="처음">«</button>
+      <button class="step" @click="prev" :disabled="step === 0" title="이전">‹</button>
+      <span class="counter"><b class="num">{{ step }}</b> / <b class="num">{{ total }}</b>수</span>
+      <button class="step" @click="next" :disabled="step === total" title="다음">›</button>
+      <button class="step" @click="last" :disabled="step === total" title="끝">»</button>
     </div>
     <p class="hint">← → 키로도 넘길 수 있습니다</p>
   </div>
@@ -102,36 +99,27 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 .replay {
   max-width: 640px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
-  min-height: 100svh;
+  padding: 1rem 1rem 1.5rem;
+  min-height: calc(100svh - 61px); /* 전역 헤더 높이 제외 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* 복기 보드: 대국 화면용 폭 공식 대신 복기 컨테이너/화면높이에 맞춰 축소 → 스크롤 방지·중앙 정렬 */
+/* 복기 보드: 헤더+대진+컨트롤 공간 제외하고 화면높이에 맞춰 축소 → 무스크롤·중앙 정렬 */
 .replay :deep(.board-wrapper) {
-  width: min(100%, calc(100svh - 320px));
-  margin: 0.5rem auto;
+  width: min(100%, calc(100svh - 380px));
+  margin: 0.4rem auto;
 }
 
-.replay-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.back-btn { font-size: 0.8rem; padding: 5px 12px; margin: 0; white-space: nowrap; }
-.spacer { width: 4.5rem; } /* back-btn 폭 상쇄로 제목 중앙 */
-.replay-title {
-  flex: 1;
+.rtitle {
   text-align: center;
-  font-family: 'ChosunGs', serif;
-  font-size: 1.6rem;
-  color: var(--inkColor);
-  letter-spacing: 0.4em;
-  margin: 0;
+  font-family: var(--display);
+  font-size: 1.55rem;
+  color: var(--ink);
+  letter-spacing: 0.35em;
+  margin: 0 0 0.9rem;
 }
 
 .matchup {
@@ -139,70 +127,68 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   align-items: center;
   justify-content: center;
   gap: 0.9rem;
-  margin-bottom: 0.3rem;
-  font-size: 0.95rem;
-  color: var(--inkColor);
+  margin-bottom: 0.35rem;
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--ink-soft);
 }
-.side {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  opacity: 0.7;
-}
-.side.won {
-  opacity: 1;
-  font-weight: 600;
-  font-family: 'ChosunGs', serif;
-}
-.vs {
-  font-size: 0.78rem;
-  color: var(--inkMid);
-  font-family: 'ChosunGs', serif;
-}
-.stone-dot {
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.stone-dot.black { background: radial-gradient(circle at 35% 35%, #666, #111); box-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
-.stone-dot.white { background: radial-gradient(circle at 35% 35%, #fff, #bbb); border: 1px solid #aaa; }
+.side { display: inline-flex; align-items: center; gap: 0.4rem; opacity: 0.6; }
+.side.won { opacity: 1; color: var(--ink); }
+.vs { font-size: 0.78rem; color: var(--ink-soft); }
+.stone { width: 0.85rem; height: 0.85rem; border-radius: 50%; flex-shrink: 0; display: inline-block; box-sizing: border-box; }
+.stone.black { background: radial-gradient(circle at 38% 34%, #4a453e, #17130e); box-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+.stone.white { background: radial-gradient(circle at 38% 34%, #fff, #cfc7b4); box-shadow: inset 0 0 0 1px #b3a892; }
 
 .verdict {
   text-align: center;
-  font-size: 0.8rem;
-  color: var(--inkMid);
-  margin: 0 0 1rem;
-  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.9rem;
+  letter-spacing: 0.03em;
 }
+.verdict b { font-family: var(--display); color: var(--ju); font-weight: 600; letter-spacing: 0.06em; }
 
 .controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1.2rem;
+  margin-top: 1.1rem;
 }
-.step-btn {
-  font-size: 1rem;
-  padding: 6px 14px;
-  margin: 0;
+.step {
+  font-size: 0.95rem;
   min-width: 2.6rem;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
+  transition: background 0.15s;
 }
-.step-btn:disabled { opacity: 0.35; cursor: default; }
+.step:hover:not(:disabled) { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); }
+.step:disabled {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid rgba(33, 28, 22, 0.22);
+  box-shadow: none;
+  opacity: 0.7;
+  cursor: default;
+}
 .counter {
   min-width: 5.5rem;
   text-align: center;
-  font-family: 'ChosunGs', serif;
   font-size: 0.9rem;
-  color: var(--inkColor);
-  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  letter-spacing: 0.03em;
 }
+.counter b { font-family: var(--mono); color: var(--ink); font-weight: 600; }
 .hint {
   text-align: center;
   font-size: 0.72rem;
-  color: var(--inkMid);
-  opacity: 0.6;
+  color: var(--ink-soft);
+  opacity: 0.65;
   margin-top: 0.8rem;
 }
 </style>
