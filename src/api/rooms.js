@@ -23,8 +23,7 @@ export function getRoom(roomNo) {
   return axios.get(`${baseUrl()}/api/rooms/${roomNo}`);
 }
 
-export function leaveRoom(roomNo, playerId) {
-  return axios.post(`${baseUrl()}/api/rooms/leave/${roomNo}`, null, {
-    params: { playerId },
-  });
+export function leaveRoom(roomNo) {
+  // 신원은 서버가 인증 principal로 판정한다. 과거의 ?playerId= 쿼리는 무시되므로 보내지 않는다.
+  return axios.post(`${baseUrl()}/api/rooms/leave/${roomNo}`, null);
 }

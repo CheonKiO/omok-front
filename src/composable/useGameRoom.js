@@ -112,7 +112,7 @@ export function useGameRoom(roomNo, player) {
 
   async function disconnect() {
     try {
-      await leaveRoom(roomNo, player.id);
+      await leaveRoom(roomNo);
     } catch (e) {
       console.error('방 나가기 오류 발생:', e);
     } finally {
