@@ -25,7 +25,18 @@ export function useGameRoom(roomNo, player) {
   // ── 데이터 로드 ────────────────────────────────────────────
 
   async function load() {
-    const { data } = await getRoom(roomNo);
+    let data;
+    try {
+      ({ data } = await getRoom(roomNo));
+    } catch (e) {
+      // 없는 방/권한 없음 → 방에 JOIN을 쏘지 않고 로비로 돌려보낸다.
+      console.error('방 정보를 불러오지 못했습니다:', e);
+      show('방을 찾을 수 없습니다', 'error', 2000);
+      ws.clearRoomId();
+      router.push({ name: 'Home' });
+      return;
+    }
+
     room.title = data.title;
     room.roomId = data.roomId;
     room.turn = data.turn;

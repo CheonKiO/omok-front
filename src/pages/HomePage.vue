@@ -46,6 +46,10 @@ async function createRoomAndConnect() {
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
     console.error(error);
+    const status = error.response?.status;
+    if (status === 429) show('방을 너무 자주 만들었습니다. 잠시 후 다시 시도해주세요', 'error', 2000);
+    else show('방을 만들지 못했습니다', 'error', 2000);
+    await fetchRoomList();
   }
 }
 
@@ -72,10 +76,16 @@ async function joinRoomAndConnect(roomId, password) {
     showPasswordModal.value = false;
     router.push({ name: 'Room', params: { roomNo: room.value } });
   } catch (error) {
-    if (error.response?.status === 403) {
+    const status = error.response?.status;
+    if (status === 403) {
       show('비밀번호가 틀렸습니다', 'error', 1500);
+    } else if (status === 400) {
+      show('방이 가득 찼거나 사라졌습니다', 'error', 2000);
+      showPasswordModal.value = false;
+      await fetchRoomList();
     } else {
       console.error(error);
+      show('입장하지 못했습니다', 'error', 2000);
     }
   }
 }
