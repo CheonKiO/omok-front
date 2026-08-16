@@ -29,7 +29,9 @@ export function useGameMessages({ state, reconnect, player, show }) {
         break;
 
       case 'ACTION':
-        room.board[msg.index] = room.turn;
+        // 서버 turn은 '다음 턴'이므로 방금 놓인 돌 번호는 turn - 1이다.
+        // 로컬 turn으로 스탬프하면 ACTION 유실 시 돌 색이 어긋난다.
+        room.board[msg.index] = msg.turn - 1;
         room.turn = msg.turn;
         lastIndex.value = msg.index;
         moveHistory.value.push(msg.index);
@@ -37,7 +39,7 @@ export function useGameMessages({ state, reconnect, player, show }) {
 
       case 'GAME_END':
         if (msg.index != null && msg.turn != null) {
-          room.board[msg.index] = room.turn;
+          room.board[msg.index] = msg.turn - 1;
           room.turn = msg.turn;
           lastIndex.value = msg.index;
           moveHistory.value.push(msg.index);
