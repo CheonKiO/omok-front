@@ -5,9 +5,13 @@ import SockJS from 'sockjs-client';
 import { useServerStore } from './server';
 import { useAuthStore } from './auth';
 
+// 방 복귀 가드용 방 id. sessionStorage라 새로고침은 견디고, 탭별로 격리되며,
+// 탭을 닫으면 자동 소멸한다(localStorage였을 때의 영구 잔존·타 탭 오염 제거).
+const ROOM_ID_KEY = 'ws_roomId';
+
 export const useWebSocketStore = defineStore('websocket', () => {
   const stompClient = ref(null);
-  const roomId = ref(null);
+  const roomId = ref(readRoomId());
   const isConnected = ref(false); // 실제 STOMP 연결 완료 여부
 
   let messageHandler = null;
@@ -90,12 +94,20 @@ export const useWebSocketStore = defineStore('websocket', () => {
     }
   }
 
+  function readRoomId() {
+    try {
+      return sessionStorage.getItem(ROOM_ID_KEY);
+    } catch {
+      return null;
+    }
+  }
+
   function saveRoomId(id) {
-    localStorage.setItem('ws_roomId', id);
+    sessionStorage.setItem(ROOM_ID_KEY, id);
   }
 
   function clearRoomId() {
-    localStorage.removeItem('ws_roomId');
+    sessionStorage.removeItem(ROOM_ID_KEY);
   }
 
   return {
@@ -106,5 +118,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     disconnect,
     setHandler,
     setConnectHandler,
+    clearRoomId,
   };
 });
