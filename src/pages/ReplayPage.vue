@@ -97,7 +97,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <style scoped>
 .replay {
-  max-width: 640px;
+  max-width: 700px;
   margin: 0 auto;
   padding: 1rem 1rem 1.5rem;
   min-height: calc(100svh - 61px); /* 전역 헤더 높이 제외 */
@@ -109,7 +109,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 /* 복기 보드: 헤더+대진+컨트롤 공간 제외하고 화면높이에 맞춰 축소 → 무스크롤·중앙 정렬 */
 .replay :deep(.board-wrapper) {
-  width: min(100%, calc(100svh - 380px));
+  width: min(100%, calc(100svh - 330px));
   margin: 0.4rem auto;
 }
 
