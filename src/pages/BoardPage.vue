@@ -96,11 +96,13 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { reactive, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
 import { useWebSocketStore } from '@/stores/websocket';
 import { useGameRoom } from '@/composable/useGameRoom';
+import { useToast } from '@/composable/useToast';
+import { useRoomTabLock } from '@/composable/useRoomTabLock';
 import GameBoard from '@/components/GameBoard.vue';
 import UserInfo from '@/components/UserInfo.vue';
 import Timer from '@/components/TimerComp.vue';
@@ -124,16 +126,33 @@ const {
   request, disconnect,
 } = useGameRoom(roomNo, player);
 
-load();
+const router = useRouter();
+const { show } = useToast();
+const tabLock = useRoomTabLock(roomNo);
 
 watch(() => room.title, (title) => {
   if (title) document.title = `${title} · 오목`;
 }, { immediate: true });
 
-onMounted(() => {
+onMounted(async () => {
+  // 같은 방을 이미 연 다른 탭이 있으면 두 번째 탭은 들어가지 않는다(중복 JOIN 방지).
+  if (!(await tabLock.acquire())) {
+    show('이 방은 다른 탭에서 이미 열려 있습니다', 'error', 2500);
+    ws.disconnect();
+    router.push({ name: 'Home' });
+    return;
+  }
+  // load 실패(없는 방/권한 없음)면 connect하지 않는다 — 안 그러면 죽은 방에 소켓이 붙고 JOIN이 나간다.
+  if (!(await load())) return;
   ws.setHandler(handleMessage);
   ws.setConnectHandler(load);
   ws.connect(roomNo, player);
+});
+
+onUnmounted(() => {
+  tabLock.release();
+  ws.setHandler(null);
+  ws.setConnectHandler(null);
 });
 </script>
 

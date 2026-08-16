@@ -35,7 +35,7 @@ export function useGameRoom(roomNo, player) {
       show('방을 찾을 수 없습니다', 'error', 2000);
       ws.disconnect();
       router.push({ name: 'Home' });
-      return;
+      return false;
     }
 
     room.title = data.title;
@@ -52,6 +52,7 @@ export function useGameRoom(roomNo, player) {
     if (data.isPlaying && data.blackPlayer) {
       myStoneIsBlack.value = data.blackPlayer === player.id;
     }
+    return true;
   }
 
   // ── 게임 액션 ─────────────────────────────────────────────

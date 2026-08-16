@@ -86,12 +86,14 @@ export const useWebSocketStore = defineStore('websocket', () => {
       stompClient.value.deactivate();
       stompClient.value = null;
       isConnected.value = false;
-      clearRoomId();
-      roomId.value = null;
       connectHandler = null;
       messageHandler = null;
       console.log('🔌 연결 종료됨');
     }
+    // client 유무와 무관하게 방 상태는 항상 정리한다.
+    // (connect 전 load 실패 시에도 sessionStorage/ref에 죽은 roomId가 남지 않도록)
+    clearRoomId();
+    roomId.value = null;
   }
 
   function readRoomId() {
