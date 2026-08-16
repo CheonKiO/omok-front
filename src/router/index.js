@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import { useWebSocketStore } from '@/stores/websocket';
 import { getRoom } from '@/api/rooms';
+import { shouldReturnToRoom } from '@/router/guard';
 //지연로딩
 const Room = () => import('@/pages/BoardPage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
@@ -31,9 +32,13 @@ router.beforeEach(async (to, from, next) => {
 
   const ws = useWebSocketStore();
   const savedRoomId = ws.roomId;
-  // 방에 있던 탭이 새로고침되면 그 방으로 되돌린다(대국 중 이탈 = 30초 뒤 몰수패).
-  // 단 방이 이미 사라졌으면 저장값을 정리하고 정상 라우팅한다.
-  if (savedRoomId && to.path !== `/room/${savedRoomId}`) {
+  // 방 복귀는 인증된 사용자만. 미인증인데 저장값이 남아있으면(토큰 만료된 이전 세션 잔재)
+  // 방으로 되돌려도 WS CONNECT가 실패하고, GET /api/rooms/**가 permitAll이라
+  // getRoom이 성공해 /login ↔ /room/X 무한 리다이렉트가 된다 → 정리하고 통과시킨다.
+  if (savedRoomId && !isLoggedIn) {
+    ws.clearRoomId();
+    ws.roomId = null;
+  } else if (shouldReturnToRoom(isLoggedIn, savedRoomId, to.path)) {
     try {
       await getRoom(savedRoomId);
       return next(`/room/${savedRoomId}`);
