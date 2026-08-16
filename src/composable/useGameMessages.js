@@ -9,12 +9,16 @@ export function useGameMessages({ state, reconnect, player, show }) {
 
   function handleMessage(msg) {
     switch (msg.type) {
-      case 'JOIN':
+      case 'JOIN': {
         if (msg.sender === player.id) return;
+        // 자동 재접속이 JOIN을 재발행하므로, 이미 같은 상대가 앉아 있으면
+        // 상태만 갱신하고 유령 입장 토스트는 띄우지 않는다.
+        const isNewOpponent = opponent.id !== msg.sender;
         opponent.name = msg.message;
         opponent.id = msg.sender;
-        show(`${msg.message}님이 입장하셨습니다`);
+        if (isNewOpponent) show(`${msg.message}님이 입장하셨습니다`);
         break;
+      }
 
       case 'GAME_START':
         room.isPlaying = true;

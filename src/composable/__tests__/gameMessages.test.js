@@ -57,3 +57,24 @@ describe('useGameMessages — 승자', () => {
     expect(ctx.state.winner.value).toBe(null);
   });
 });
+
+describe('useGameMessages — 유령 입장 토스트', () => {
+  it('이미 등록된 상대의 JOIN은 토스트를 띄우지 않는다', () => {
+    const ctx = setup();
+    ctx.handleMessage({ type: 'JOIN', sender: 'opp', message: '상대' });
+    const countAfterFirst = ctx.shown.length;
+
+    ctx.handleMessage({ type: 'JOIN', sender: 'opp', message: '상대' });
+
+    expect(ctx.shown.length).toBe(countAfterFirst);
+    expect(ctx.state.opponent.id).toBe('opp');
+  });
+
+  it('새 상대의 JOIN은 토스트를 띄운다', () => {
+    const ctx = setup();
+
+    ctx.handleMessage({ type: 'JOIN', sender: 'opp', message: '상대' });
+
+    expect(ctx.shown.length).toBe(1);
+  });
+});
