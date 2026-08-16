@@ -97,6 +97,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <style scoped>
 .replay {
+  width: 100%;
   max-width: 820px;
   margin: 0 auto;
   padding: 0.75rem 1rem 1rem;

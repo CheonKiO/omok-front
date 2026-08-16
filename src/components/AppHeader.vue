@@ -12,7 +12,7 @@
     <div class="right">
       <span class="who">
         <span class="stone" :class="isGuest ? 'guest' : 'black'"></span>
-        {{ displayName }}
+        <span class="uname">{{ displayName }}</span>
       </span>
       <button class="logout" @click="handleLogout">나가기</button>
     </div>
@@ -120,6 +120,7 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 18px;
+  min-width: 0;
 }
 .who {
   display: flex;
@@ -127,6 +128,13 @@ async function handleLogout() {
   gap: 7px;
   font-size: 0.85rem;
   color: var(--ink);
+  min-width: 0;
+}
+.uname {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .logout {
   font-family: var(--display);
@@ -143,5 +151,16 @@ async function handleLogout() {
 .logout:hover {
   color: var(--ink);
   border-bottom-color: var(--ink-soft);
+}
+
+/* 좁은 폭: 헤더 넓히고 유저명 숨김·여백 축소로 밀림 방지 */
+@media (max-width: 680px) {
+  .app-header { width: 92vw; padding: 0 16px; }
+  .brand { font-size: 1.2rem; letter-spacing: 0.1em; gap: 8px; }
+  .nav { margin-left: 14px; gap: 0; }
+  .nav-link { padding: 8px 9px; font-size: 0.9rem; }
+  .nav-link.on::after { left: 9px; right: 9px; }
+  .right { gap: 12px; }
+  .uname { display: none; }
 }
 </style>
