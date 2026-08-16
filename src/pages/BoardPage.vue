@@ -1,4 +1,5 @@
 <template>
+  <div class="board-page">
   <!-- ── 헤더 ─────────────────────────────────── -->
   <div class="game-header">
     <div class="header-left flex col-center">
@@ -75,10 +76,11 @@
         <button
           v-if="!room.isPlaying && opponent.id != null"
           class="btn ready-btn"
-          @click="handleReady"
-          :disabled="player.ready || !ws.isConnected"
+          :class="{ 'cancel-ready': player.ready }"
+          @click="player.ready ? handleCancel() : handleReady()"
+          :disabled="!ws.isConnected"
         >
-          준비
+          {{ player.ready ? '준비 취소' : '준비' }}
         </button>
         <UserInfo
           :name="player.name"
@@ -89,6 +91,7 @@
       </div>
 
     </div>
+  </div>
   </div>
 </template>
 
@@ -117,7 +120,7 @@ const {
   room, opponent, lastIndex, myStoneIsBlack, timerRef,
   opponentDisconnected, reconnectCountdown, isMyTurn,
   load, handleMessage,
-  handleClick, handleSurrender, handleReady, handleTimeout,
+  handleClick, handleSurrender, handleReady, handleCancel, handleTimeout,
   request, disconnect,
 } = useGameRoom(roomNo, player);
 
@@ -138,25 +141,24 @@ onMounted(() => {
 /* ════════════════════════════════════
    헤더 — 가벼운 상단 스트립 (반상 시스템)
    ════════════════════════════════════ */
+/* 대국 화면 전체: 뷰포트에 딱 맞춰 스크롤 없음 */
+.board-page {
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .game-header {
   position: relative;
   height: 72px;
+  flex-shrink: 0;
   padding: 0 24px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   border-bottom: 1.5px solid var(--ink);
   z-index: 10;
-}
-/* 주홍 인장 틱 */
-.game-header::after {
-  content: '';
-  position: absolute;
-  left: 24px;
-  bottom: -4px;
-  width: 70px;
-  height: 2.5px;
-  background: var(--ju);
 }
 
 /* 헤더 좌우 셀 */
@@ -229,7 +231,8 @@ onMounted(() => {
    보드 스테이지 — 남은 화면 수직 중앙
    ════════════════════════════════════ */
 .board-stage {
-  height: calc(100svh - 72px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -247,13 +250,13 @@ onMounted(() => {
   align-items: stretch;
 }
 
-/* 상대방: 왼쪽 열, 위쪽 정렬 = 보드 상단 라인 */
+/* 상대방: 왼쪽 열, 위쪽 정렬 = 보드 상단 라인 (돌 크기 상한이라 안 넘침) */
 .col-opponent {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 12px;
+  padding-top: 6px;
 }
 
 /* 보드 */
@@ -269,7 +272,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 12px;
+  padding-bottom: 6px;
 }
 
 /* 플레이어 슬롯 공통 */
@@ -293,19 +296,23 @@ onMounted(() => {
   box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
 }
 .ready-btn:hover:not(:disabled) { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); color: #f2e8d4; }
+/* 준비 취소 상태 — 아웃라인(고스트) */
+.ready-btn.cancel-ready {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid rgba(33, 28, 22, 0.35);
+  box-shadow: none;
+}
+.ready-btn.cancel-ready:hover:not(:disabled) { background: rgba(33, 28, 22, 0.06); color: var(--ink); }
 
 /* ════════════════════════════════════
    모바일 (≤ 768px)
    수직 배치: 상대(보드 위) | 보드 | 나(보드 아래)
    ════════════════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 520px) {
   .game-header { height: 52px; padding: 0 10px; }
   .hbtn span   { display: none; }
   .hbtn        { padding: 5px 10px; }
-
-  .board-stage {
-    height: calc(100svh - 52px);
-  }
 
   /* flex 컬럼: 상대 → 보드 → 나, 전체 수직 중앙 */
   .game-board {
@@ -313,7 +320,7 @@ onMounted(() => {
     flex-direction: column;
     justify-content: center;
     width: 100%;
-    height: calc(100svh - 52px);
+    height: 100%;
     gap: 4px;
   }
 

@@ -83,7 +83,7 @@ defineProps({
   box-shadow: 0 4px 16px rgba(44,21,5,0.25);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 520px) {
   /* 모바일: 거의 전체 너비, 세로는 헤더 + 위아래 유저정보(~140px) 제외 */
   .board-wrapper {
     width: min(calc(100vw - 16px), calc(100svh - 52px - 140px));
@@ -126,38 +126,21 @@ defineProps({
   width: 100%;
   height: 100%;
   position: relative;
-  background-image:
-    linear-gradient(to left, black 1px, transparent 1px),
-    linear-gradient(to bottom, black 1px, transparent 1px);
-  background-origin: content-box;
-  background-size: 6.6667% 6.6667%;
-  background-position: 3.3333% 3.3333%;
 }
 
-/* 삐져나온 선 정리용 */
-.board::after {
+/* 격자선 — 교차점(첫~마지막) 범위에만 정확히 15줄. 가장자리 삐져나옴 없음.
+   inset 3.3333%(= 반 칸 = 1/30)로 셀 중심에 맞추고,
+   size (100%-1px)/14 로 양 끝 선이 안쪽 박스 경계에 딱 붙게 한다. */
+.board::before {
   content: '';
   position: absolute;
+  inset: 3.3333%;
   pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  background:
-    /* 위쪽 잘라내기 */
-    linear-gradient(to bottom, var(--boardColor) 0 90%, transparent 90%) top,
-    /* 아래쪽 잘라내기 */ linear-gradient(to top, var(--boardColor) 0 90%, transparent 90%)
-      bottom,
-    /* 왼쪽 잘라내기 */ linear-gradient(to right, var(--boardColor) 0 90%, transparent 90%) left,
-    /* 오른쪽 잘라내기 */ linear-gradient(to left, var(--boardColor) 0 90%, transparent 90%)
-      right;
-  background-repeat: no-repeat;
-  background-size:
-    100% 3.3%,
-    100% 3.3%,
-    3.3% 100%,
-    3.3% 100%;
+  z-index: 0;
+  background-image:
+    linear-gradient(black 1px, transparent 1px),
+    linear-gradient(90deg, black 1px, transparent 1px);
+  background-size: calc((100% - 1px) / 14) calc((100% - 1px) / 14);
 }
 .cell {
   position: relative;
