@@ -8,6 +8,24 @@
   --inkMid: #6b3a1f;
   --borderColor: #9b7a30;
   --app-font: 'Pretendard';
+
+  /* ── 반상 디자인 시스템 토큰 ─────────────────────────────
+     타입 3역: 표제(display) · 본문(app-font) · 숫자/좌표/일시(mono) */
+  --display: 'ChosunGs';
+  --mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* 재질 팔레트 */
+  --hanji: #f1e7cf;      /* 한지 */
+  --ink: #211c16;        /* 먹 — 흑돌·본문 */
+  --ink-soft: #5f5340;   /* 보조 텍스트 */
+  --wood: #c6923b;       /* 반상 나무 */
+  --line: #3a2c18;       /* 반상 격자선 */
+  --ju: #9a3a2d;         /* 주칠 — 주요 액션·마지막 수·흑 진영 */
+  --ju-strong: #872f24;
+  --cheong: #2f5d6b;     /* 청 — 보조·관전·백 진영 */
+  --gold: #9b7a30;       /* 금 헤어라인(절제) */
+  --win: #3f7a52;        /* 승 — 녹색(긍정) */
+  --loss: #6f6a5e;       /* 패 — 중립 회색 */
 }
 
 /* ── 레이아웃 유틸 ─────────────────────────────────────── */
@@ -66,6 +84,58 @@
   background: linear-gradient(180deg, #7c4a2a 0%, #5c2e0e 100%);
   color: var(--paperColor);
 }
+
+/* 숫자·좌표·수순·일시 전용 등폭. 한글 단위(수/승/판)는 감싸지 말 것 */
+.num { font-family: var(--mono); font-feature-settings: 'tnum'; letter-spacing: 0.01em; }
+
+/* ── 커스텀 스크롤바 (반상 톤) ─────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: rgba(58, 44, 24, 0.4) transparent; } /* Firefox */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(58, 44, 24, 0.35);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(58, 44, 24, 0.6);
+  background-clip: padding-box;
+}
+
+/* 공유 버튼 변형 (반상 시스템) — display 서체 */
+.btn.ju {
+  font-family: var(--display);
+  color: #f2e4cf;
+  background: linear-gradient(180deg, #a4402f 0%, var(--ju-strong) 100%);
+  box-shadow: 0 2px 4px rgba(60, 20, 12, 0.3), inset 0 1px 0 rgba(255, 240, 220, 0.15);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+  letter-spacing: 0.08em;
+}
+.btn.ju:hover { background: linear-gradient(180deg, #b0472f 0%, #93332a 100%); color: #f2e4cf; }
+
+.btn.ink {
+  font-family: var(--display);
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
+  letter-spacing: 0.1em;
+}
+.btn.ink:hover { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); color: #f2e8d4; }
+
+/* 텍스트 링크형 (나가기·헤더 액션) */
+.btn.ghost {
+  font-family: var(--display);
+  background: none;
+  box-shadow: none;
+  text-shadow: none;
+  color: var(--ink-soft);
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 2px 0;
+  letter-spacing: 0.05em;
+}
+.btn.ghost:hover { background: none; color: var(--ink); border-bottom-color: var(--ink-soft); }
 
 .circle { border-radius: 50%; }
 

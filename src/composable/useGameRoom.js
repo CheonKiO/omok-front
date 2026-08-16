@@ -65,6 +65,10 @@ export function useGameRoom(roomNo, player) {
     publish('/app/ready', { type: 'READY', sender: player, roomId: room.roomId ?? roomNo });
   }
 
+  function handleCancel() {
+    publish('/app/cancel', { type: 'CANCEL', sender: player, roomId: room.roomId ?? roomNo });
+  }
+
   function handleTimeout() {
     if (!room.isPlaying || !isMyTurn.value) return;
     publish('/app/timeout', { type: 'TIMEOUT', sender: player, roomId: room.roomId ?? roomNo });
@@ -109,7 +113,7 @@ export function useGameRoom(roomNo, player) {
     room, opponent, lastIndex, myStoneIsBlack, timerRef,
     opponentDisconnected, reconnectCountdown, isMyTurn,
     load, handleMessage,
-    handleClick, handleSurrender, handleReady, handleTimeout,
+    handleClick, handleSurrender, handleReady, handleCancel, handleTimeout,
     request, disconnect,
   };
 }

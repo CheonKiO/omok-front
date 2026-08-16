@@ -196,13 +196,13 @@ function handleSubmit() {
 }
 
 .login-card {
-  background: linear-gradient(160deg, #fdf6e3 0%, #f0deb8 100%);
-  border: 1px solid var(--borderColor);
+  background: linear-gradient(160deg, #f4ead1 0%, #e8dcbe 100%);
+  border: 1.5px solid var(--ink);
   box-shadow:
-    0 0 0 4px #f5e9ce,
-    0 0 0 5px var(--borderColor),
-    0 8px 32px rgba(44, 21, 5, 0.25);
-  border-radius: 4px;
+    0 0 0 4px var(--hanji),
+    0 0 0 5px var(--gold),
+    0 14px 40px rgba(30, 18, 6, 0.3);
+  border-radius: 3px;
   padding: 2.8rem 3rem;
   width: 100%;
   max-width: 26rem;
@@ -219,9 +219,9 @@ function handleSubmit() {
 }
 
 .brand-title {
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   font-size: 2.6rem;
-  color: var(--inkColor);
+  color: var(--ink);
   letter-spacing: 0.4em;
   margin: 0;
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
@@ -252,7 +252,7 @@ function handleSubmit() {
 .tabs {
   display: flex;
   margin-bottom: 1.6rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--ink);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -261,11 +261,11 @@ function handleSubmit() {
   flex: 1;
   padding: 0.5rem 0;
   font-size: 0.85rem;
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   letter-spacing: 0.08em;
   background: transparent;
   border: none;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   cursor: pointer;
   transition:
     background 0.15s,
@@ -273,13 +273,13 @@ function handleSubmit() {
 }
 
 .tab.active {
-  background: var(--mainColor);
-  color: #f5e9ce;
+  background: var(--ink);
+  color: #f2e8d4;
   font-weight: 600;
 }
 
 .tab:not(.active):hover {
-  background: rgba(92, 46, 14, 0.06);
+  background: rgba(33, 28, 22, 0.06);
 }
 
 .description {
@@ -319,8 +319,8 @@ label {
 }
 
 .input-field:focus {
-  border-color: var(--mainColor);
-  box-shadow: 0 0 0 2px rgba(92, 46, 14, 0.15);
+  border-color: var(--ju);
+  box-shadow: 0 0 0 2px rgba(154, 58, 45, 0.15);
   outline: none;
   background: rgba(255, 255, 255, 0.9);
 }
@@ -328,23 +328,23 @@ label {
 .login-button {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(180deg, #6b3a1f 0%, #4a2410 100%);
-  color: #f3ecd6;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  color: #f2e8d4;
   border: none;
   border-radius: 3px;
   font-size: 1rem;
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   font-weight: normal;
   letter-spacing: 0.3em;
   cursor: pointer;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
-  box-shadow: 0 2px 5px rgba(44, 21, 5, 0.22);
+  box-shadow: 0 2px 5px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
   transition: background 0.2s ease, transform 0.1s ease;
   margin-top: 0.4rem;
 }
 
 .login-button:hover:not(:disabled) {
-  background: linear-gradient(180deg, #7c4a2a 0%, #5c2e0e 100%);
+  background: linear-gradient(180deg, #3a3122 0%, #241d12 100%);
 }
 
 .login-button:active:not(:disabled) {

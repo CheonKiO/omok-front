@@ -1,11 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import { createRoom, joinRoom, fetchRooms } from '@/api/rooms';
-import Card from '@/components/RoomListCard.vue';
 import Modal from '@/components/ModalComp.vue';
 
 const { show } = useToast();
@@ -25,15 +23,6 @@ const playerStore = usePlayerStore();
 const player = { id: playerStore.playerId, name: playerStore.username };
 
 const router = useRouter();
-
-const authStore = useAuthStore();
-const displayName = computed(() => authStore.nickname ?? '손님');
-const isGuest = computed(() => authStore.role === 'GUEST');
-
-async function handleLogout() {
-  await authStore.logout();
-  router.push('/login');
-}
 
 async function createRoomAndConnect() {
   if (roomName.value == null || roomName.value.trim().length < 2) {
@@ -109,63 +98,49 @@ onMounted(fetchRoomList);
 <template>
   <div class="lobby">
 
-    <div class="user-bar">
-      <span class="user-name">
-        <span class="user-dot" :class="isGuest ? 'guest' : 'member'"></span>
-        {{ displayName }}
-        <span class="user-role">{{ isGuest ? '게스트' : '회원' }}</span>
-      </span>
-      <span class="bar-actions">
-        <button v-if="!isGuest" class="btn kifu-btn" @click="router.push('/games')">내 기보</button>
-        <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
-      </span>
-    </div>
-
     <div class="lobby-main">
-    <header class="lobby-header">
-      <h1 class="lobby-title">대 국 실</h1>
-      <p class="lobby-sub">흑과 백이 겨루는 오목 대국실입니다</p>
-    </header>
-
-    <div class="room-panel">
-      <div class="panel-toolbar">
-        <span class="panel-label">현재 대국 목록</span>
-        <div class="toolbar-actions">
-          <button class="btn refresh-btn" @click="fetchRoomList">↻ 새로고침</button>
-          <button class="create-plaque" @click="showModal = true">
-            <span class="create-icon">＋</span>대국방 개설
-          </button>
+      <div class="listhead">
+        <h1 class="t">대국실<span class="cnt" v-if="!isLoading"><b class="num">{{ roomList.length }}</b>판</span></h1>
+        <div class="head-actions">
+          <button class="refresh" @click="fetchRoomList" title="새로고침" aria-label="새로고침">↻</button>
+          <button class="create btn ju" @click="showModal = true"><span class="p">＋</span>새 대국</button>
         </div>
       </div>
 
-      <div class="room-list">
-        <div v-if="isLoading" class="empty-state">불러오는 중…</div>
+      <div v-if="isLoading" class="empty">불러오는 중…</div>
 
-        <div v-else-if="roomList.length === 0" class="empty-state">
-          <span class="empty-icon">⊙</span>
-          <p>현재 개설된 대국방이 없습니다</p>
-          <p class="empty-hint">상단 개설 버튼으로 대국방을 만들어보세요</p>
-        </div>
+      <div v-else-if="roomList.length === 0" class="empty">
+        <span class="empty-mark"></span>
+        <p>아직 열린 대국이 없습니다</p>
+        <p class="hint">새 대국 버튼으로 방을 만들어보세요</p>
+      </div>
 
-        <div v-else class="flex dir-col">
-          <Card
-            v-for="room in roomList"
-            :key="room.roomId"
-            :title="room.title"
-            :personnel="room.players.length"
-            :hasPassword="room.hasPassword"
-          >
-            <button
-              @click="requestJoin(room)"
-              :disabled="room.players.length >= 2"
-              class="btn join-btn"
-            >
-              입 장
-            </button>
-          </Card>
+      <div v-else class="rooms">
+        <div
+          v-for="room in roomList"
+          :key="room.roomId"
+          class="room"
+          :class="{ full: room.players.length >= 2 }"
+          @click="room.players.length < 2 && requestJoin(room)"
+        >
+          <span class="mini" :class="{ playing: room.players.length >= 2 }"><i></i><i></i><i></i></span>
+          <span class="rtitle">{{ room.title }}</span>
+          <span class="rmeta">
+            <span class="seat">
+              <span class="stone black"></span>
+              <span class="stone" :class="room.players.length >= 2 ? 'white' : 'vacant'"></span>
+            </span>
+            <span class="num pcount">{{ room.players.length }}/2</span>
+            <span class="tag" v-if="room.hasPassword">· 비공개</span>
+            <span class="tag" v-else-if="room.players.length >= 2">· 관전</span>
+          </span>
+          <button
+            class="enter"
+            :disabled="room.players.length >= 2"
+            @click.stop="requestJoin(room)"
+          >{{ room.players.length >= 2 ? '대국 중' : '입장' }}</button>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- 방 만들기 모달 -->
@@ -223,210 +198,162 @@ onMounted(fetchRoomList);
 
 <style scoped>
 .lobby {
-  max-width: 720px;
+  width: 80vw;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
-  min-height: 100svh;
+  padding: 1.5rem 26px 1.25rem;
+  flex: 1;
+  min-height: 0; /* 전역 헤더 아래 남은 높이 채움 — 페이지 자체는 스크롤 안 함 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
-/* 유저바 아래 남는 공간에 헤더+목록을 세로 중앙 배치 */
+/* 명패는 상단 고정, 목록만 남은 높이 채우며 내부 스크롤 */
 .lobby-main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-bottom: 3rem;
 }
 
-/* 유저 바 */
-.user-bar {
+/* 명패(masthead) */
+.listhead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 1.4rem;
-}
-
-.user-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--inkColor);
-  letter-spacing: 0.03em;
-}
-
-.user-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
+  margin-bottom: 14px;
   flex-shrink: 0;
 }
-
-.user-dot.member {
-  background: radial-gradient(circle at 35% 35%, #666, #111);
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.user-dot.guest {
-  background: radial-gradient(circle at 35% 35%, #fff, #bbb);
-  border: 1px solid #aaa;
-}
-
-.user-role {
-  font-size: 0.72rem;
-  color: var(--inkMid);
-  opacity: 0.75;
-}
-
-.bar-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.logout-btn,
-.kifu-btn {
-  font-size: 0.78rem;
-  padding: 4px 12px;
+.t {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
   margin: 0;
 }
-
-/* 헤더 */
-.lobby-header {
-  text-align: center;
-  margin-bottom: 2.4rem;
+.t .cnt {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-left: 14px;
+  letter-spacing: 0.02em;
 }
+.t .cnt b { color: var(--ju); font-weight: 600; margin-right: 2px; }
 
-.lobby-title {
-  font-family: 'ChosunGs', serif;
-  font-size: 2.4rem;
-  color: var(--inkColor);
-  letter-spacing: 0.45em;
-  margin: 0 0 0.4rem;
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
-}
-
-.lobby-sub {
-  font-size: 0.8rem;
-  color: var(--inkMid);
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-/* 방 목록 패널 */
-.room-panel {
-  background: rgba(255,255,255,0.18);
-  border: 1px solid var(--borderColor);
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(44,21,5,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
-  overflow: hidden;
-}
-
-.panel-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.7rem 1.2rem;
-  background: linear-gradient(180deg, rgba(201,160,71,0.25) 0%, rgba(201,160,71,0.08) 100%);
-  border-bottom: 1px solid var(--borderColor);
-}
-
-.panel-label {
-  font-size: 0.8rem;
-  font-family: 'ChosunGs', serif;
-  color: var(--inkMid);
-  letter-spacing: 0.1em;
-}
-
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.refresh-btn {
-  font-size: 0.82rem;
-  padding: 6px 16px;
-  margin: 0;
-}
-
-.room-list {
-  padding: 1.25rem;
-  min-height: 300px;
-}
-
-/* 빈 상태 */
-.empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: var(--inkMid);
-  font-size: 0.88rem;
-}
-
-.empty-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.4;
-}
-
-.empty-hint {
-  font-size: 0.78rem;
-  opacity: 0.6;
-  margin-top: 0.3rem;
-}
-
-/* 입장 버튼 */
-.join-btn {
-  font-family: 'ChosunGs', serif;
-  letter-spacing: 0.2em;
-  font-size: 0.85rem;
-  padding: 6px 16px;
-  white-space: nowrap;
-  color: #f3ecd6;
-  background: linear-gradient(180deg, rgba(154, 68, 54, 0.85) 0%, rgba(122, 47, 36, 0.88) 100%);
-  box-shadow: 0 1px 2px rgba(80, 30, 22, 0.24);
-}
-
-.join-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(168, 80, 64, 0.92) 0%, rgba(136, 56, 44, 0.94) 100%);
-  color: #f3ecd6;
-}
-
-/* 방 개설 명패 버튼 (군청 강조) */
-.create-plaque {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: var(--app-font);
-  letter-spacing: 0.04em;
-  color: #f3ecd6;
-  background: linear-gradient(180deg, rgba(63, 81, 112, 0.82) 0%, rgba(43, 58, 85, 0.86) 100%);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
-  box-shadow: 0 2px 5px rgba(30, 40, 60, 0.24);
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-
-.create-plaque:hover {
-  background: linear-gradient(180deg, rgba(78, 98, 132, 0.9) 0%, rgba(54, 72, 102, 0.92) 100%);
-}
-
-.create-plaque:active {
-  transform: translateY(0.5px);
-  box-shadow: inset 0 1px 3px rgba(20, 40, 34, 0.4);
-}
-
-.create-icon {
-  font-size: 1.05rem;
+.head-actions { display: flex; align-items: center; gap: 14px; }
+.refresh {
+  font-size: 1.15rem;
   line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s, transform 0.35s ease;
+}
+.refresh:hover { color: var(--ink); transform: rotate(90deg); }
+.create { margin: 0; padding: 8px 16px; border-radius: 3px; display: inline-flex; align-items: center; gap: 7px; font-size: 0.9rem; }
+.create .p { font-size: 1rem; line-height: 1; }
+
+/* 대장(ledger) — 목록만 내부 스크롤 */
+.rooms {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1.5px solid var(--ink);
+}
+.empty {
+  flex: 1;
+  min-height: 0;
+  border-top: 1.5px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.empty-mark {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--ink); opacity: 0.22; margin-bottom: 0.4rem;
+}
+.empty .hint { font-size: 0.8rem; opacity: 0.7; }
+
+.room {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(33, 28, 22, 0.14);
+  cursor: pointer;
+}
+.room.full { cursor: default; }
+.room:hover { background: rgba(154, 58, 45, 0.05); }
+.room.full:hover { background: none; }
+
+.mini {
+  width: 28px; height: 28px; position: relative;
+  border: 1px solid var(--ink); background: var(--wood); border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.12);
+}
+.mini::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 3px; height: 3px; border-radius: 50%; background: var(--line);
+  transform: translate(-50%, -50%); opacity: 0.5;
+}
+.mini.playing::after { display: none; }
+.mini i { position: absolute; width: 6px; height: 6px; border-radius: 50%; display: none; box-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+.mini.playing i { display: block; }
+.mini.playing i:nth-child(1) { background: #17130e; left: 5px; top: 5px; }
+.mini.playing i:nth-child(2) { background: #f3ecd9; left: 14px; top: 11px; }
+.mini.playing i:nth-child(3) { background: #17130e; left: 9px; top: 17px; }
+
+.rtitle {
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rmeta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap;
+}
+.seat { display: inline-flex; gap: 3px; align-items: center; }
+.seat .stone { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-sizing: border-box; flex-shrink: 0; }
+.seat .stone.black { background: radial-gradient(circle at 38% 34%, #4a453e, #17130e); }
+.seat .stone.white { background: radial-gradient(circle at 38% 34%, #fff, #cfc7b4); box-shadow: inset 0 0 0 1px #b3a892; }
+.seat .stone.vacant { border: 1px dashed rgba(33, 28, 22, 0.3); }
+.rmeta .pcount { color: var(--ink); }
+.rmeta .tag { color: var(--cheong); }
+
+.enter {
+  justify-self: end;
+  font-family: var(--display);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  min-width: 82px;
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
+  transition: background 0.15s;
+}
+.enter:hover:not(:disabled) { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); }
+.enter:disabled {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid rgba(33, 28, 22, 0.22);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* 모달 필드 */
@@ -437,7 +364,7 @@ onMounted(fetchRoomList);
 .modal-field label {
   display: block;
   font-size: 0.82rem;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   margin-bottom: 0.4rem;
   letter-spacing: 0.04em;
 }
@@ -445,26 +372,26 @@ onMounted(fetchRoomList);
 .modal-field input {
   width: 100%;
   padding: 0.6rem 0.85rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--gold);
   border-radius: 2px;
   font-size: 0.9rem;
   font-family: var(--app-font);
-  background: rgba(255,255,255,0.75);
-  color: var(--inkColor);
+  background: rgba(255,255,255,0.7);
+  color: var(--ink);
   box-sizing: border-box;
 }
 
 .modal-field input:focus {
   outline: none;
-  border-color: var(--mainColor);
-  box-shadow: 0 0 0 2px rgba(92,46,14,0.15);
+  border-color: var(--ju);
+  box-shadow: 0 0 0 2px rgba(154,58,45,0.15);
 }
 
 .modal-toggle {
   display: flex;
   gap: 0;
   margin-bottom: 0.75rem;
-  border: 1px solid var(--borderColor);
+  border: 1px solid var(--ink);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -473,22 +400,22 @@ onMounted(fetchRoomList);
   flex: 1;
   padding: 0.45rem 0;
   font-size: 0.85rem;
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   letter-spacing: 0.08em;
   background: transparent;
   border: none;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .toggle-btn.active {
-  background: var(--mainColor);
-  color: #f5e9ce;
+  background: var(--ink);
+  color: #f2e8d4;
   font-weight: 600;
 }
 
 .toggle-btn:not(.active):hover {
-  background: rgba(92,46,14,0.06);
+  background: rgba(33,28,22,0.06);
 }
 </style>

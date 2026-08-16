@@ -24,29 +24,27 @@ const { message, type, visible } = useToast();
   min-width: 220px;
   text-align: center;
   letter-spacing: 0.03em;
-  background: linear-gradient(160deg, #fdf6e3 0%, #f0deb8 100%);
-  border: 1px solid var(--borderColor);
+  color: var(--ink);
+  background: linear-gradient(160deg, #f4ead1 0%, #e8dcbe 100%);
+  border: 1.5px solid var(--ink);
   box-shadow:
-    0 0 0 3px #f5e9ce,
-    0 0 0 4px var(--borderColor),
-    0 6px 20px rgba(20,8,0,0.25);
+    0 0 0 3px var(--hanji),
+    0 0 0 4px var(--gold),
+    0 8px 24px rgba(20,8,0,0.3);
 }
 
-.toast.info {
-  border-color: var(--borderColor);
-  color: var(--inkColor);
-}
+.toast.info { color: var(--ink); }
 
 .toast.success {
-  border-color: #5a8a4a;
-  box-shadow: 0 0 0 3px #f5e9ce, 0 0 0 4px #5a8a4a, 0 6px 20px rgba(20,8,0,0.2);
-  color: #3a6a2a;
+  color: var(--win);
+  box-shadow: 0 0 0 3px var(--hanji), 0 0 0 4px var(--win), 0 8px 24px rgba(20,8,0,0.25);
+  border-color: var(--win);
 }
 
 .toast.error {
-  border-color: #b94040;
-  box-shadow: 0 0 0 3px #f5e9ce, 0 0 0 4px #b94040, 0 6px 20px rgba(20,8,0,0.2);
-  color: #8b2020;
+  color: var(--ju);
+  box-shadow: 0 0 0 3px var(--hanji), 0 0 0 4px var(--ju), 0 8px 24px rgba(20,8,0,0.25);
+  border-color: var(--ju);
 }
 
 .slide-up-enter-active,

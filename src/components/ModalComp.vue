@@ -37,13 +37,13 @@ const close = () => emit('close');
 }
 
 .modal-content {
-  background: linear-gradient(160deg, #fdf6e3 0%, #f0deb8 100%);
-  border: 1px solid var(--borderColor);
+  background: linear-gradient(160deg, #f4ead1 0%, #e8dcbe 100%);
+  border: 1.5px solid var(--ink);
   box-shadow:
-    0 0 0 4px #f5e9ce,
-    0 0 0 5px var(--borderColor),
-    0 12px 40px rgba(20,8,0,0.35);
-  border-radius: 4px;
+    0 0 0 4px var(--hanji),
+    0 0 0 5px var(--gold),
+    0 14px 44px rgba(20,8,0,0.4);
+  border-radius: 3px;
   padding: 1.6rem 1.8rem;
   min-width: 280px;
   max-width: 380px;
@@ -56,14 +56,14 @@ const close = () => emit('close');
   align-items: center;
   margin-bottom: 1.2rem;
   padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--borderColor);
+  border-bottom: 1.5px solid var(--ink);
 }
 
 .modal-header h3 {
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   font-weight: normal;
-  font-size: 1.05rem;
-  color: var(--inkColor);
+  font-size: 1.1rem;
+  color: var(--ink);
   letter-spacing: 0.12em;
   margin: 0;
 }
@@ -73,14 +73,14 @@ const close = () => emit('close');
   border: none;
   font-size: 1rem;
   cursor: pointer;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   padding: 2px 6px;
   border-radius: 2px;
   transition: color 0.15s;
 }
 
 .close-btn:hover {
-  color: var(--mainColor);
+  color: var(--ju);
 }
 
 .modal-body {
@@ -90,26 +90,30 @@ const close = () => emit('close');
 .apply-btn {
   margin-top: 1rem;
   width: 100%;
-  color: #f3ecd6;
-  padding: 10px;
+  color: #f2e4cf;
+  padding: 11px;
   border: none;
   border-radius: 3px;
   font-size: 0.95rem;
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   letter-spacing: 0.2em;
   cursor: pointer;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.25);
-  box-shadow: 0 2px 5px rgba(44,21,5,0.2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.28);
+  box-shadow: 0 2px 4px rgba(60,20,12,0.3), inset 0 1px 0 rgba(255,240,220,0.15);
   transition: background 0.15s ease, transform 0.1s ease;
-  /* 기본(개설) = 군청, 로비 '대국방 개설' 버튼과 동일 반투명 톤. 변형 미적용 시에도 색 보장 */
-  background: linear-gradient(180deg, rgba(63,81,112,0.82) 0%, rgba(43,58,85,0.86) 100%);
+  /* 기본(개설) = 주칠. 변형 미적용 시에도 색 보장 */
+  background: linear-gradient(180deg, #a4402f 0%, #872f24 100%);
 }
 
-.apply-btn.create:hover { background: linear-gradient(180deg, rgba(78,98,132,0.9) 0%, rgba(54,72,102,0.92) 100%); }
+.apply-btn.create:hover { background: linear-gradient(180deg, #b0472f 0%, #93332a 100%); }
 
-/* 입장 = 주홍 (로비 '입장' 버튼과 동일 반투명 톤) */
-.apply-btn.join { background: linear-gradient(180deg, rgba(154,68,54,0.85) 0%, rgba(122,47,36,0.88) 100%); }
-.apply-btn.join:hover { background: linear-gradient(180deg, rgba(168,80,64,0.92) 0%, rgba(136,56,44,0.94) 100%); }
+/* 입장 = ink (로비 '입장' 버튼과 동일) */
+.apply-btn.join {
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20,12,4,0.28), inset 0 1px 0 rgba(255,240,220,0.08);
+}
+.apply-btn.join:hover { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); }
 
 .apply-btn:active {
   transform: translateY(1px);

@@ -15,7 +15,7 @@ defineProps({
 
 <style scoped>
 .user-info {
-  width: 80%;
+  width: clamp(48px, 72%, 96px);
   aspect-ratio: 1;
   transition: box-shadow 0.3s ease;
   display: flex;
@@ -38,7 +38,7 @@ defineProps({
   line-height: 1.2;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 520px) {
   .user-info {
     width: 44px;
     flex-shrink: 0;
