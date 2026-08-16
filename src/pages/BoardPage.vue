@@ -136,36 +136,30 @@ onMounted(() => {
 
 <style scoped>
 /* ════════════════════════════════════
-   헤더 — 다크 마호가니 목재 스타일
+   헤더 — 가벼운 상단 스트립 (반상 시스템)
    ════════════════════════════════════ */
 .game-header {
   position: relative;
   height: 72px;
-  padding: 0 16px;
+  padding: 0 24px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  background: linear-gradient(180deg, #4e2412 0%, #2a1004 100%);
+  border-bottom: 1.5px solid var(--ink);
   z-index: 10;
 }
-
-/* 하단 골드→투명 그라데이션 */
+/* 주홍 인장 틱 */
 .game-header::after {
   content: '';
   position: absolute;
-  left: 0; right: 0;
-  top: 100%;
-  height: 28px;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(201, 160, 71, 0.45) 0%,
-    rgba(201, 160, 71, 0.1) 50%,
-    transparent 100%
-  );
+  left: 24px;
+  bottom: -4px;
+  width: 70px;
+  height: 2.5px;
+  background: var(--ju);
 }
 
-/* 헤더 좌우 셀: 높이 꽉 채우고 버튼을 수직 중앙 정렬 */
+/* 헤더 좌우 셀 */
 .header-left,
 .header-right {
   display: flex;
@@ -179,59 +173,57 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 14px;
-  height: 36px;           /* 고정 높이로 패딩 영향 제거 */
+  padding: 0 16px;
+  height: 36px;
   background: transparent;
-  border: 1px solid rgba(201,160,71,0.4);
-  border-radius: 3px;
-  color: #f5e9ce;
-  font-size: 0.82rem;
-  font-family: var(--app-font);
+  border: 1px solid rgba(33, 28, 22, 0.25);
+  border-radius: 2px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-family: var(--display);
+  letter-spacing: 0.06em;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
   line-height: 1;
 }
-.hbtn:hover {
-  background: rgba(201,160,71,0.15);
-  border-color: var(--accentColor);
-  color: var(--accentColor);
-}
+.hbtn:hover { border-color: var(--ink); color: var(--ink); }
 .hbtn:active { opacity: 0.7; }
-.hbtn.danger:hover {
-  background: rgba(185,64,64,0.2);
-  border-color: #e08080;
-  color: #e08080;
+.hbtn.danger {
+  background: linear-gradient(180deg, #a4402f 0%, #872f24 100%);
+  border: none;
+  color: #f2e4cf;
+  box-shadow: 0 1px 3px rgba(60, 20, 12, 0.3);
 }
+.hbtn.danger:hover { background: linear-gradient(180deg, #b0472f 0%, #93332a 100%); color: #f2e4cf; }
 
 /* 헤더 중앙 */
-.header-mid { gap: 1px; }
+.header-mid { gap: 2px; }
 
 /* 방 이름 명패 */
 .room-title-label {
-  font-family: 'ChosunGs', serif;
-  font-size: 0.8rem;
-  color: var(--accentColor);
-  letter-spacing: 0.2em;
-  opacity: 0.85;
+  font-family: var(--display);
+  font-size: 0.85rem;
+  color: var(--ink);
+  letter-spacing: 0.16em;
   line-height: 1;
   margin-bottom: 2px;
 }
 
 .victory {
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   font-size: 1.3rem;
-  color: var(--accentColor);
-  letter-spacing: 0.2em;
+  color: var(--ju);
+  letter-spacing: 0.16em;
 }
 .turn-label {
-  font-size: 0.72rem;
-  color: rgba(245,233,206,0.6);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
   letter-spacing: 0.05em;
 }
-.status      { font-size: 0.75rem; }
-.connecting  { color: #aaa; }
-.reconnecting { color: #e88; font-weight: 600; }
+.status      { font-size: 0.78rem; }
+.connecting  { color: var(--ink-soft); }
+.reconnecting { color: var(--ju); font-weight: 600; }
 
 /* ════════════════════════════════════
    보드 스테이지 — 남은 화면 수직 중앙
@@ -287,16 +279,20 @@ onMounted(() => {
 .slot-name { display: none; }
 .slot-ready {
   font-size: 0.62rem;
-  color: var(--accentColor);
+  color: var(--cheong);
   font-weight: 600;
 }
 
-/* 준비 버튼 */
+/* 준비 버튼 (ink) */
 .ready-btn {
-  font-family: 'ChosunGs', serif;
+  font-family: var(--display);
   letter-spacing: 0.2em;
   margin-bottom: 8px;
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
 }
+.ready-btn:hover:not(:disabled) { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); color: #f2e8d4; }
 
 /* ════════════════════════════════════
    모바일 (≤ 768px)

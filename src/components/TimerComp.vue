@@ -53,11 +53,11 @@ defineExpose({ pause, resume });
   display: flex;
   align-items: baseline;
   gap: 0.3rem;
-  padding: 4px 14px 6px;
-  background: linear-gradient(180deg, rgba(253,246,227,0.9) 0%, rgba(232,212,154,0.85) 100%);
-  border: 1px solid var(--borderColor);
+  padding: 4px 16px 7px;
+  background: rgba(245, 233, 206, 0.5);
+  border: 1px solid var(--gold);
   border-radius: 3px;
-  box-shadow: 0 2px 6px rgba(44,21,5,0.15);
+  box-shadow: 0 1px 4px rgba(44, 21, 5, 0.12);
   flex-wrap: wrap;
   justify-content: center;
   position: relative;
@@ -66,26 +66,27 @@ defineExpose({ pause, resume });
 }
 
 .timer.urgent {
-  border-color: #b94040;
-  box-shadow: 0 0 8px rgba(185,64,64,0.4);
+  border-color: var(--ju);
+  box-shadow: 0 0 8px rgba(154, 58, 45, 0.35);
   animation: pulse-red 1s infinite;
 }
 
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 6px rgba(185,64,64,0.3); }
-  50%       { box-shadow: 0 0 14px rgba(185,64,64,0.6); }
+  0%, 100% { box-shadow: 0 0 6px rgba(154, 58, 45, 0.25); }
+  50%       { box-shadow: 0 0 14px rgba(154, 58, 45, 0.5); }
 }
 
 .timer-label {
   font-size: 0.7rem;
-  color: var(--inkMid);
+  color: var(--ink-soft);
   letter-spacing: 0.05em;
 }
 
 .timer-value {
-  font-family: 'ChosunGs', serif;
-  font-size: 1.6rem;
-  color: var(--inkColor);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--ink);
   line-height: 1;
   min-width: 2ch;
   text-align: right;
@@ -93,19 +94,19 @@ defineExpose({ pause, resume });
 }
 
 .timer.urgent .timer-value {
-  color: #b94040;
+  color: var(--ju);
 }
 
 .timer-unit {
   font-size: 0.75rem;
-  color: var(--inkMid);
+  color: var(--ink-soft);
 }
 
 /* 진행바 */
 .timer-bar-wrap {
   width: 100%;
   height: 3px;
-  background: rgba(155,122,48,0.2);
+  background: rgba(33, 28, 22, 0.15);
   border-radius: 2px;
   overflow: hidden;
   position: absolute;
@@ -115,12 +116,12 @@ defineExpose({ pause, resume });
 
 .timer-bar {
   height: 100%;
-  background: linear-gradient(to right, var(--accentColor), var(--mainColor));
+  background: var(--ju);
   transition: width 1s linear;
   border-radius: 2px;
 }
 
 .timer.urgent .timer-bar {
-  background: linear-gradient(to right, #e8a040, #b94040);
+  background: var(--ju);
 }
 </style>
