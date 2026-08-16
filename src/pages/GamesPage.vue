@@ -90,21 +90,22 @@ onMounted(async () => {
 .archive {
   max-width: 720px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
-  min-height: 100svh;
+  padding: 1.5rem 1.5rem 1.25rem;
+  height: calc(100svh - 61px); /* 전역 헤더 제외 — 페이지 자체는 스크롤 안 함 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
-/* 짧으면 세로 중앙, 길어지면 auto 여백 접혀 위부터 스크롤 */
-.archive-main { margin-block: auto; width: 100%; }
+/* 명패 상단 고정, 목록만 내부 스크롤 (대국실과 동일) */
+.archive-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 /* 명패 */
 .listhead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
 }
 .t {
   font-family: var(--display);
@@ -122,8 +123,9 @@ onMounted(async () => {
 
 /* 빈 상태 */
 .empty {
+  flex: 1;
+  min-height: 0;
   border-top: 1.5px solid var(--ink);
-  min-height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,8 +137,9 @@ onMounted(async () => {
 .empty-mark { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); opacity: 0.22; margin-bottom: 0.4rem; }
 .empty .hint { font-size: 0.8rem; opacity: 0.7; }
 
-/* 대장(ledger) */
-.log { border-top: 1.5px solid var(--ink); }
+/* 대장(ledger) — 목록만 내부 스크롤 */
+.log { flex: 1; min-height: 0; overflow-y: auto; border-top: 1.5px solid var(--ink); }
+.log .rowh { position: sticky; top: 0; background: #ece2c8; z-index: 1; }
 .rowh, .row {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 110px 116px;

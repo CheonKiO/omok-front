@@ -128,7 +128,7 @@ onMounted(fetchRoomList);
           <span class="rmeta">
             <span class="seat">
               <span class="stone black"></span>
-              <span class="stone" :class="room.players.length >= 2 ? 'white' : 'empty'"></span>
+              <span class="stone" :class="room.players.length >= 2 ? 'white' : 'vacant'"></span>
             </span>
             <span class="num pcount">{{ room.players.length }}/2</span>
             <span class="tag" v-if="room.hasPassword">· 비공개</span>
@@ -200,20 +200,19 @@ onMounted(fetchRoomList);
 .lobby {
   max-width: 720px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
-  min-height: 100svh;
+  padding: 1.5rem 1.5rem 1.25rem;
+  height: calc(100svh - 61px); /* 전역 헤더 제외 — 페이지 자체는 스크롤 안 함 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
-/* 남는 공간에 헤더+목록을 세로 중앙 배치 */
+/* 명패는 상단 고정, 목록만 남은 높이 채우며 내부 스크롤 */
 .lobby-main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-bottom: 3rem;
 }
 
 /* 명패(masthead) */
@@ -221,12 +220,13 @@ onMounted(fetchRoomList);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
 }
 .t {
   font-family: var(--display);
-  font-size: 1.9rem;
-  letter-spacing: 0.14em;
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
   color: var(--ink);
   margin: 0;
 }
@@ -250,14 +250,20 @@ onMounted(fetchRoomList);
   transition: color 0.15s, transform 0.35s ease;
 }
 .refresh:hover { color: var(--ink); transform: rotate(90deg); }
-.create { margin: 0; padding: 10px 20px; border-radius: 3px; display: inline-flex; align-items: center; gap: 8px; }
-.create .p { font-size: 1.1rem; line-height: 1; }
+.create { margin: 0; padding: 8px 16px; border-radius: 3px; display: inline-flex; align-items: center; gap: 7px; font-size: 0.9rem; }
+.create .p { font-size: 1rem; line-height: 1; }
 
-/* 대장(ledger) */
-.rooms { border-top: 1.5px solid var(--ink); min-height: 260px; }
-.empty {
+/* 대장(ledger) — 목록만 내부 스크롤 */
+.rooms {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   border-top: 1.5px solid var(--ink);
-  min-height: 260px;
+}
+.empty {
+  flex: 1;
+  min-height: 0;
+  border-top: 1.5px solid var(--ink);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -274,10 +280,10 @@ onMounted(fetchRoomList);
 
 .room {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 20px;
-  padding: 15px 4px;
+  gap: 16px;
+  padding: 8px 4px;
   border-bottom: 1px solid rgba(33, 28, 22, 0.14);
   cursor: pointer;
 }
@@ -286,26 +292,26 @@ onMounted(fetchRoomList);
 .room.full:hover { background: none; }
 
 .mini {
-  width: 36px; height: 36px; position: relative;
-  border: 1.5px solid var(--ink); background: var(--wood); border-radius: 2px;
+  width: 28px; height: 28px; position: relative;
+  border: 1px solid var(--ink); background: var(--wood); border-radius: 2px;
   box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.12);
 }
 .mini::after {
   content: ''; position: absolute; left: 50%; top: 50%;
-  width: 4px; height: 4px; border-radius: 50%; background: var(--line);
+  width: 3px; height: 3px; border-radius: 50%; background: var(--line);
   transform: translate(-50%, -50%); opacity: 0.5;
 }
 .mini.playing::after { display: none; }
-.mini i { position: absolute; width: 7px; height: 7px; border-radius: 50%; display: none; box-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+.mini i { position: absolute; width: 6px; height: 6px; border-radius: 50%; display: none; box-shadow: 0 1px 1px rgba(0,0,0,0.3); }
 .mini.playing i { display: block; }
-.mini.playing i:nth-child(1) { background: #17130e; left: 6px; top: 6px; }
-.mini.playing i:nth-child(2) { background: #f3ecd9; left: 18px; top: 14px; }
-.mini.playing i:nth-child(3) { background: #17130e; left: 12px; top: 22px; }
+.mini.playing i:nth-child(1) { background: #17130e; left: 5px; top: 5px; }
+.mini.playing i:nth-child(2) { background: #f3ecd9; left: 14px; top: 11px; }
+.mini.playing i:nth-child(3) { background: #17130e; left: 9px; top: 17px; }
 
 .rtitle {
   font-family: var(--display);
-  font-size: 1.12rem;
-  letter-spacing: 0.04em;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
   color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -317,16 +323,16 @@ onMounted(fetchRoomList);
 .seat .stone { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-sizing: border-box; flex-shrink: 0; }
 .seat .stone.black { background: radial-gradient(circle at 38% 34%, #4a453e, #17130e); }
 .seat .stone.white { background: radial-gradient(circle at 38% 34%, #fff, #cfc7b4); box-shadow: inset 0 0 0 1px #b3a892; }
-.seat .stone.empty { border: 1px dashed rgba(33, 28, 22, 0.3); }
+.seat .stone.vacant { border: 1px dashed rgba(33, 28, 22, 0.3); }
 .rmeta .pcount { color: var(--ink); }
 .rmeta .tag { color: var(--cheong); }
 
 .enter {
   justify-self: end;
   font-family: var(--display);
-  font-size: 0.92rem;
-  letter-spacing: 0.1em;
-  padding: 8px 20px;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
   border: none;
   border-radius: 2px;
   cursor: pointer;
