@@ -24,8 +24,8 @@
         :key="room.turn"
         @timeout="handleTimeout"
       />
-      <div class="victory" v-if="!room.isPlaying && lastIndex != null">
-        {{ room.board[lastIndex] % 2 == 1 ? '흑' : '백' }} 승리
+      <div class="victory" v-if="!room.isPlaying && winner">
+        {{ winner === 'BLACK' ? '흑' : '백' }} 승리
       </div>
       <div v-if="!ws.isConnected" class="status connecting">연결 중…</div>
       <div v-if="opponentDisconnected" class="status reconnecting">
@@ -117,7 +117,7 @@ const player = reactive({
 });
 
 const {
-  room, opponent, lastIndex, myStoneIsBlack, timerRef,
+  room, opponent, lastIndex, myStoneIsBlack, winner, timerRef,
   opponentDisconnected, reconnectCountdown, isMyTurn,
   load, handleMessage,
   handleClick, handleSurrender, handleReady, handleCancel, handleTimeout,

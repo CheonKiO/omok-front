@@ -4,7 +4,7 @@ import { SIZE } from '@/composable/useGameState';
 // state: useGameState() 반환, reconnect: useReconnectCountdown() 반환,
 // player: 로컬 플레이어 reactive, show: 토스트 함수.
 export function useGameMessages({ state, reconnect, player, show }) {
-  const { room, opponent, lastIndex, moveHistory, myStoneIsBlack } = state;
+  const { room, opponent, lastIndex, moveHistory, myStoneIsBlack, winner } = state;
   const { start, stop } = reconnect;
 
   function handleMessage(msg) {
@@ -23,6 +23,7 @@ export function useGameMessages({ state, reconnect, player, show }) {
         player.ready = false;
         opponent.ready = false;
         lastIndex.value = null;
+        winner.value = null;
         moveHistory.value = [];
         myStoneIsBlack.value = msg.blackPlayer === player.id;
         show('게임이 시작되었습니다.', 'info', 2000);
@@ -44,6 +45,7 @@ export function useGameMessages({ state, reconnect, player, show }) {
           lastIndex.value = msg.index;
           moveHistory.value.push(msg.index);
         }
+        winner.value = msg.winner ?? null;
         room.isPlaying = false;
         show(msg.message, 'info');
         break;
@@ -64,6 +66,7 @@ export function useGameMessages({ state, reconnect, player, show }) {
         if (!opponent.id || msg.sender !== opponent.id) return;
         stop();
         room.board = Array(SIZE * SIZE).fill(null);
+        winner.value = null;
         show(`${opponent.name} 님이 방을 나갔습니다`);
         opponent.id = null;
         opponent.name = null;

@@ -37,3 +37,23 @@ describe('useGameMessages — 착수번호', () => {
     expect(ctx.state.room.board[114]).toBe(3); // 흑 (홀수 = 흑)
   });
 });
+
+describe('useGameMessages — 승자', () => {
+  it('GAME_END의 winner를 그대로 보존한다', () => {
+    const ctx = setup();
+    ctx.state.room.isPlaying = true;
+
+    ctx.handleMessage({ type: 'GAME_END', message: '기권', winner: 'WHITE' });
+
+    expect(ctx.state.winner.value).toBe('WHITE');
+  });
+
+  it('GAME_START에서 승자를 초기화한다', () => {
+    const ctx = setup();
+    ctx.state.winner.value = 'BLACK';
+
+    ctx.handleMessage({ type: 'GAME_START', blackPlayer: 'me' });
+
+    expect(ctx.state.winner.value).toBe(null);
+  });
+});

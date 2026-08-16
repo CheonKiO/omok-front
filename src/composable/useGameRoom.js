@@ -15,7 +15,7 @@ export function useGameRoom(roomNo, player) {
   const { show } = useToast();
 
   const state = useGameState();
-  const { room, opponent, lastIndex, moveHistory, myStoneIsBlack, timerRef, isMyTurn } = state;
+  const { room, opponent, lastIndex, moveHistory, myStoneIsBlack, winner, timerRef, isMyTurn } = state;
 
   const reconnect = useReconnectCountdown();
   const { opponentDisconnected, reconnectCountdown } = reconnect;
@@ -122,7 +122,7 @@ export function useGameRoom(roomNo, player) {
   }
 
   return {
-    room, opponent, lastIndex, myStoneIsBlack, timerRef,
+    room, opponent, lastIndex, myStoneIsBlack, winner, timerRef,
     opponentDisconnected, reconnectCountdown, isMyTurn,
     load, handleMessage,
     handleClick, handleSurrender, handleReady, handleCancel, handleTimeout,
