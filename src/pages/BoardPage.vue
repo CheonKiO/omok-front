@@ -215,7 +215,7 @@ onMounted(() => {
 .victory {
   font-family: var(--display);
   font-size: 1.3rem;
-  color: var(--ju);
+  color: var(--win);
   letter-spacing: 0.16em;
 }
 .turn-label {
