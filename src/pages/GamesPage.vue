@@ -120,8 +120,8 @@ onMounted(async () => {
 .t .cnt b { color: var(--ju); font-weight: 600; }
 .wl { font-size: 0.85rem; color: var(--ink-soft); display: flex; gap: 12px; }
 .wl b { font-weight: 600; }
-.wl .w b { color: var(--ju); }
-.wl .l b { color: var(--cheong); }
+.wl .w b { color: var(--win); }
+.wl .l b { color: var(--loss); }
 
 /* 빈 상태 */
 .empty {
@@ -168,8 +168,8 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: center;
   font-family: var(--display); font-size: 0.9rem; color: #f3e2cf;
 }
-.res.win { background: var(--ju); box-shadow: 0 1px 3px rgba(70, 20, 12, 0.35); }
-.res.loss { background: #6f6a5e; }
+.res.win { background: var(--win); box-shadow: 0 1px 3px rgba(30, 60, 40, 0.35); }
+.res.loss { background: var(--loss); }
 
 .opp {
   display: flex; align-items: center; gap: 9px;

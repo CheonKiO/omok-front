@@ -62,6 +62,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <template>
   <div class="replay">
+    <button class="back" @click="router.push('/games')">← 기록부</button>
     <h1 class="rtitle">복기</h1>
 
     <div v-if="game" class="matchup">
@@ -97,21 +98,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <style scoped>
 .replay {
+  position: relative;
   width: 100%;
-  max-width: 820px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0.75rem 1rem 1rem;
   flex: 1;
-  min-height: 0; /* 전역 헤더 아래 남은 높이 채움 */
+  min-height: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* 복기 보드: 헤더+대진+컨트롤 공간 제외하고 화면높이에 맞춰 축소 → 무스크롤·중앙 정렬 */
+/* 뒤로가기 — 절대배치라 중앙정렬에 영향 없음 */
+.back {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  z-index: 5;
+  font-family: var(--display);
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  transition: color 0.15s;
+}
+.back:hover { color: var(--ink); }
+
+/* 복기 보드: 몰입(전역헤더 없음) — 대진+컨트롤만 제외하고 최대한 크게. 무스크롤. */
 .replay :deep(.board-wrapper) {
-  width: min(100%, calc(100svh - 300px));
+  width: min(100%, calc(100svh - 250px));
   margin: 0.3rem auto;
 }
 
@@ -148,7 +168,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   margin: 0 0 0.5rem;
   letter-spacing: 0.03em;
 }
-.verdict b { font-family: var(--display); color: var(--ju); font-weight: 600; letter-spacing: 0.06em; }
+.verdict b { font-family: var(--display); color: var(--win); font-weight: 600; letter-spacing: 0.06em; }
 
 .controls {
   display: flex;

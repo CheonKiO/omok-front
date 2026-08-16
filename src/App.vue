@@ -14,8 +14,8 @@ import Toast from '@/components/ToastMessage.vue';
 import AppHeader from '@/components/AppHeader.vue';
 
 const route = useRoute();
-// 대국(몰입)·로그인 화면은 전역 헤더 제외
-const showHeader = computed(() => !['Room', 'Login'].includes(route.name));
+// 대국·복기(몰입)·로그인 화면은 전역 헤더 제외
+const showHeader = computed(() => !['Room', 'Login', 'Replay'].includes(route.name));
 </script>
 <style scoped>
 .main {
