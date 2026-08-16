@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
 import { useToast } from '@/composable/useToast';
 import { createRoom, joinRoom, fetchRooms } from '@/api/rooms';
-import Card from '@/components/RoomListCard.vue';
 import Modal from '@/components/ModalComp.vue';
 
 const { show } = useToast();
@@ -100,50 +99,48 @@ onMounted(fetchRoomList);
   <div class="lobby">
 
     <div class="lobby-main">
-    <header class="lobby-header">
-      <h1 class="lobby-title">대 국 실</h1>
-      <p class="lobby-sub">흑과 백이 겨루는 오목 대국실입니다</p>
-    </header>
-
-    <div class="room-panel">
-      <div class="panel-toolbar">
-        <span class="panel-label">현재 대국 목록</span>
-        <div class="toolbar-actions">
-          <button class="btn refresh-btn" @click="fetchRoomList">↻ 새로고침</button>
-          <button class="create-plaque" @click="showModal = true">
-            <span class="create-icon">＋</span>대국방 개설
-          </button>
+      <div class="listhead">
+        <h1 class="t">대국실<span class="cnt" v-if="!isLoading"><b class="num">{{ roomList.length }}</b>판</span></h1>
+        <div class="head-actions">
+          <button class="refresh" @click="fetchRoomList" title="새로고침" aria-label="새로고침">↻</button>
+          <button class="create btn ju" @click="showModal = true"><span class="p">＋</span>새 대국</button>
         </div>
       </div>
 
-      <div class="room-list">
-        <div v-if="isLoading" class="empty-state">불러오는 중…</div>
+      <div v-if="isLoading" class="empty">불러오는 중…</div>
 
-        <div v-else-if="roomList.length === 0" class="empty-state">
-          <span class="empty-icon">⊙</span>
-          <p>현재 개설된 대국방이 없습니다</p>
-          <p class="empty-hint">상단 개설 버튼으로 대국방을 만들어보세요</p>
-        </div>
+      <div v-else-if="roomList.length === 0" class="empty">
+        <span class="empty-mark"></span>
+        <p>아직 열린 대국이 없습니다</p>
+        <p class="hint">새 대국 버튼으로 방을 만들어보세요</p>
+      </div>
 
-        <div v-else class="flex dir-col">
-          <Card
-            v-for="room in roomList"
-            :key="room.roomId"
-            :title="room.title"
-            :personnel="room.players.length"
-            :hasPassword="room.hasPassword"
-          >
-            <button
-              @click="requestJoin(room)"
-              :disabled="room.players.length >= 2"
-              class="btn join-btn"
-            >
-              입 장
-            </button>
-          </Card>
+      <div v-else class="rooms">
+        <div
+          v-for="room in roomList"
+          :key="room.roomId"
+          class="room"
+          :class="{ full: room.players.length >= 2 }"
+          @click="room.players.length < 2 && requestJoin(room)"
+        >
+          <span class="mini" :class="{ playing: room.players.length >= 2 }"><i></i><i></i><i></i></span>
+          <span class="rtitle">{{ room.title }}</span>
+          <span class="rmeta">
+            <span class="seat">
+              <span class="stone black"></span>
+              <span class="stone" :class="room.players.length >= 2 ? 'white' : 'empty'"></span>
+            </span>
+            <span class="num pcount">{{ room.players.length }}/2</span>
+            <span class="tag" v-if="room.hasPassword">· 비공개</span>
+            <span class="tag" v-else-if="room.players.length >= 2">· 관전</span>
+          </span>
+          <button
+            class="enter"
+            :disabled="room.players.length >= 2"
+            @click.stop="requestJoin(room)"
+          >{{ room.players.length >= 2 ? '대국 중' : '입장' }}</button>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- 방 만들기 모달 -->
@@ -219,140 +216,133 @@ onMounted(fetchRoomList);
   padding-bottom: 3rem;
 }
 
-/* 헤더 */
-.lobby-header {
-  text-align: center;
-  margin-bottom: 2.4rem;
-}
-
-.lobby-title {
-  font-family: 'ChosunGs', serif;
-  font-size: 2.4rem;
-  color: var(--inkColor);
-  letter-spacing: 0.45em;
-  margin: 0 0 0.4rem;
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
-}
-
-.lobby-sub {
-  font-size: 0.8rem;
-  color: var(--inkMid);
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-/* 방 목록 패널 */
-.room-panel {
-  background: rgba(255,255,255,0.18);
-  border: 1px solid var(--borderColor);
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(44,21,5,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
-  overflow: hidden;
-}
-
-.panel-toolbar {
+/* 명패(masthead) */
+.listhead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 0.7rem 1.2rem;
-  background: linear-gradient(180deg, rgba(201,160,71,0.25) 0%, rgba(201,160,71,0.08) 100%);
-  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 16px;
 }
-
-.panel-label {
-  font-size: 0.8rem;
-  font-family: 'ChosunGs', serif;
-  color: var(--inkMid);
-  letter-spacing: 0.1em;
-}
-
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.refresh-btn {
-  font-size: 0.82rem;
-  padding: 6px 16px;
+.t {
+  font-family: var(--display);
+  font-size: 1.9rem;
+  letter-spacing: 0.14em;
+  color: var(--ink);
   margin: 0;
 }
-
-.room-list {
-  padding: 1.25rem;
-  min-height: 300px;
+.t .cnt {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-left: 14px;
+  letter-spacing: 0.02em;
 }
+.t .cnt b { color: var(--ju); font-weight: 600; margin-right: 2px; }
 
-/* 빈 상태 */
-.empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: var(--inkMid);
-  font-size: 0.88rem;
-}
-
-.empty-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.4;
-}
-
-.empty-hint {
-  font-size: 0.78rem;
-  opacity: 0.6;
-  margin-top: 0.3rem;
-}
-
-/* 입장 버튼 */
-.join-btn {
-  font-family: 'ChosunGs', serif;
-  letter-spacing: 0.2em;
-  font-size: 0.85rem;
-  padding: 6px 16px;
-  white-space: nowrap;
-  color: #f3ecd6;
-  background: linear-gradient(180deg, rgba(154, 68, 54, 0.85) 0%, rgba(122, 47, 36, 0.88) 100%);
-  box-shadow: 0 1px 2px rgba(80, 30, 22, 0.24);
-}
-
-.join-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(168, 80, 64, 0.92) 0%, rgba(136, 56, 44, 0.94) 100%);
-  color: #f3ecd6;
-}
-
-/* 방 개설 명패 버튼 (군청 강조) */
-.create-plaque {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: var(--app-font);
-  letter-spacing: 0.04em;
-  color: #f3ecd6;
-  background: linear-gradient(180deg, rgba(63, 81, 112, 0.82) 0%, rgba(43, 58, 85, 0.86) 100%);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
-  box-shadow: 0 2px 5px rgba(30, 40, 60, 0.24);
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-
-.create-plaque:hover {
-  background: linear-gradient(180deg, rgba(78, 98, 132, 0.9) 0%, rgba(54, 72, 102, 0.92) 100%);
-}
-
-.create-plaque:active {
-  transform: translateY(0.5px);
-  box-shadow: inset 0 1px 3px rgba(20, 40, 34, 0.4);
-}
-
-.create-icon {
-  font-size: 1.05rem;
+.head-actions { display: flex; align-items: center; gap: 14px; }
+.refresh {
+  font-size: 1.15rem;
   line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s, transform 0.35s ease;
+}
+.refresh:hover { color: var(--ink); transform: rotate(90deg); }
+.create { margin: 0; padding: 10px 20px; border-radius: 3px; display: inline-flex; align-items: center; gap: 8px; }
+.create .p { font-size: 1.1rem; line-height: 1; }
+
+/* 대장(ledger) */
+.rooms { border-top: 1.5px solid var(--ink); min-height: 260px; }
+.empty {
+  border-top: 1.5px solid var(--ink);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.empty-mark {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--ink); opacity: 0.22; margin-bottom: 0.4rem;
+}
+.empty .hint { font-size: 0.8rem; opacity: 0.7; }
+
+.room {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 4px;
+  border-bottom: 1px solid rgba(33, 28, 22, 0.14);
+  cursor: pointer;
+}
+.room.full { cursor: default; }
+.room:hover { background: rgba(154, 58, 45, 0.05); }
+.room.full:hover { background: none; }
+
+.mini {
+  width: 36px; height: 36px; position: relative;
+  border: 1.5px solid var(--ink); background: var(--wood); border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.12);
+}
+.mini::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--line);
+  transform: translate(-50%, -50%); opacity: 0.5;
+}
+.mini.playing::after { display: none; }
+.mini i { position: absolute; width: 7px; height: 7px; border-radius: 50%; display: none; box-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+.mini.playing i { display: block; }
+.mini.playing i:nth-child(1) { background: #17130e; left: 6px; top: 6px; }
+.mini.playing i:nth-child(2) { background: #f3ecd9; left: 18px; top: 14px; }
+.mini.playing i:nth-child(3) { background: #17130e; left: 12px; top: 22px; }
+
+.rtitle {
+  font-family: var(--display);
+  font-size: 1.12rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rmeta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap;
+}
+.seat { display: inline-flex; gap: 3px; align-items: center; }
+.seat .stone { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-sizing: border-box; flex-shrink: 0; }
+.seat .stone.black { background: radial-gradient(circle at 38% 34%, #4a453e, #17130e); }
+.seat .stone.white { background: radial-gradient(circle at 38% 34%, #fff, #cfc7b4); box-shadow: inset 0 0 0 1px #b3a892; }
+.seat .stone.empty { border: 1px dashed rgba(33, 28, 22, 0.3); }
+.rmeta .pcount { color: var(--ink); }
+.rmeta .tag { color: var(--cheong); }
+
+.enter {
+  justify-self: end;
+  font-family: var(--display);
+  font-size: 0.92rem;
+  letter-spacing: 0.1em;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #f2e8d4;
+  background: linear-gradient(180deg, #2c261a 0%, #1a150d 100%);
+  box-shadow: 0 2px 4px rgba(20, 12, 4, 0.28), inset 0 1px 0 rgba(255, 240, 220, 0.08);
+  transition: background 0.15s;
+}
+.enter:hover:not(:disabled) { background: linear-gradient(180deg, #3a3122 0%, #241d12 100%); }
+.enter:disabled {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid rgba(33, 28, 22, 0.22);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* 모달 필드 */

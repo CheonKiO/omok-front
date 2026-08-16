@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchMyGames } from '@/api/games';
 import { useToast } from '@/composable/useToast';
@@ -10,10 +10,13 @@ const { show } = useToast();
 const games = ref([]);
 const isLoading = ref(true);
 
+const wins = computed(() => games.value.filter((g) => g.result === 'WIN').length);
+const losses = computed(() => games.value.length - wins.value);
+
 const REASON_LABEL = {
-  WIN_5: '5목',
+  WIN_5: '5목 완성',
   SURRENDER: '기권',
-  TIMEOUT: '시간초과',
+  TIMEOUT: '시간 초과',
   DISCONNECT: '연결 끊김',
 };
 
@@ -24,7 +27,7 @@ function reasonLabel(r) {
 function formatDate(iso) {
   const d = new Date(iso);
   const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 onMounted(async () => {
@@ -42,53 +45,48 @@ onMounted(async () => {
 <template>
   <div class="archive">
     <div class="archive-main">
-    <header class="archive-header">
-      <h1 class="archive-title">대 국 기 록 부</h1>
-      <p class="archive-sub">지난 대국의 기보를 다시 살펴봅니다</p>
-    </header>
-
-    <div class="record-panel">
-      <div class="panel-toolbar">
-        <span class="panel-label">내 기록<span v-if="!isLoading"> · {{ games.length }}판</span></span>
-        <button class="btn back-btn" @click="router.push('/')">← 대국실</button>
+      <div class="listhead">
+        <h1 class="t">기보<span class="cnt" v-if="!isLoading"> · <b class="num">{{ games.length }}</b>판</span></h1>
+        <span class="wl" v-if="!isLoading && games.length">
+          <span class="w"><b class="num">{{ wins }}</b>승</span>
+          <span class="l"><b class="num">{{ losses }}</b>패</span>
+        </span>
       </div>
 
-      <div class="record-body">
-      <div v-if="isLoading" class="empty-state">불러오는 중…</div>
+      <div v-if="isLoading" class="empty">불러오는 중…</div>
 
-      <div v-else-if="games.length === 0" class="empty-state">
-        <span class="empty-icon">⊙</span>
+      <div v-else-if="games.length === 0" class="empty">
+        <span class="empty-mark"></span>
         <p>아직 둔 기보가 없습니다</p>
-        <p class="empty-hint">대국을 마치면 여기 쌓입니다</p>
+        <p class="hint">대국을 마치면 여기 쌓입니다</p>
       </div>
 
-      <ul v-else class="record-list">
-        <li
+      <div v-else class="log">
+        <div class="rowh">
+          <span>결과</span><span>상대</span><span>종국</span><span>일시</span>
+        </div>
+        <div
           v-for="g in games"
           :key="g.id"
-          class="record-row"
+          class="row"
           @click="router.push(`/games/${g.id}`)"
         >
-          <span class="result-mark" :class="g.result === 'WIN' ? 'win' : 'loss'">
+          <span class="res" :class="g.result === 'WIN' ? 'win' : 'loss'">
             {{ g.result === 'WIN' ? '승' : '패' }}
           </span>
-          <span class="opponent">
-            <span class="stone-dot" :class="g.myColor === 'BLACK' ? 'white' : 'black'"></span>
+          <span class="opp">
+            <span class="stone" :class="g.myColor === 'BLACK' ? 'white' : 'black'"></span>
             {{ g.opponentName }}
           </span>
           <span class="reason">{{ reasonLabel(g.endReason) }}</span>
           <span class="date">{{ formatDate(g.createdAt) }}</span>
-          <span class="chevron">›</span>
-        </li>
-      </ul>
+        </div>
       </div>
-    </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* 대국실(HomePage)과 동일한 셸/패널 구조·값 */
 .archive {
   max-width: 720px;
   margin: 0 auto;
@@ -98,182 +96,93 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
 }
+/* 짧으면 세로 중앙, 길어지면 auto 여백 접혀 위부터 스크롤 */
+.archive-main { margin-block: auto; width: 100%; }
 
-/* 짧으면 세로 중앙, 목록이 길어지면 auto 여백이 0으로 접혀 위부터 스크롤 */
-.archive-main {
-  margin-block: auto;
-  width: 100%;
-}
-
-.archive-header {
-  text-align: center;
-  margin-bottom: 2.4rem;
-}
-
-.archive-title {
-  font-family: 'ChosunGs', serif;
-  font-size: 2.4rem;
-  color: var(--inkColor);
-  letter-spacing: 0.45em;
-  margin: 0 0 0.4rem;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-.archive-sub {
-  font-size: 0.8rem;
-  color: var(--inkMid);
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-.record-panel {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid var(--borderColor);
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(44, 21, 5, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  overflow: hidden;
-}
-
-.panel-toolbar {
+/* 명패 */
+.listhead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 0.7rem 1.2rem;
-  background: linear-gradient(180deg, rgba(201,160,71,0.25) 0%, rgba(201,160,71,0.08) 100%);
-  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 16px;
 }
-
-.panel-label {
-  font-size: 0.8rem;
-  font-family: 'ChosunGs', serif;
-  color: var(--inkMid);
-  letter-spacing: 0.1em;
-}
-
-.back-btn {
-  font-size: 0.82rem;
-  padding: 6px 16px;
+.t {
+  font-family: var(--display);
+  font-size: 1.9rem;
+  letter-spacing: 0.14em;
+  color: var(--ink);
   margin: 0;
-  white-space: nowrap;
 }
+.t .cnt { font-size: 0.9rem; color: var(--ink-soft); letter-spacing: 0.02em; }
+.t .cnt b { color: var(--ju); font-weight: 600; }
+.wl { font-size: 0.85rem; color: var(--ink-soft); display: flex; gap: 12px; }
+.wl b { font-weight: 600; }
+.wl .w b { color: var(--ju); }
+.wl .l b { color: var(--cheong); }
 
-.record-body {
-  min-height: 300px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--inkMid);
+/* 빈 상태 */
+.empty {
+  border-top: 1.5px solid var(--ink);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
   font-size: 0.9rem;
 }
-.empty-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.4;
-}
-.empty-hint {
-  font-size: 0.78rem;
-  opacity: 0.6;
-  margin-top: 0.3rem;
-}
+.empty-mark { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); opacity: 0.22; margin-bottom: 0.4rem; }
+.empty .hint { font-size: 0.8rem; opacity: 0.7; }
 
-.record-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.record-row {
-  display: flex;
+/* 대장(ledger) */
+.log { border-top: 1.5px solid var(--ink); }
+.rowh, .row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 110px 116px;
+  gap: 16px;
   align-items: center;
-  gap: 0.9rem;
-  padding: 0.85rem 1.2rem;
-  border-bottom: 1px solid rgba(92, 46, 14, 0.12);
+}
+.rowh {
+  padding: 9px 6px;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  border-bottom: 1px solid rgba(33, 28, 22, 0.2);
+}
+.row {
+  padding: 14px 6px;
+  border-bottom: 1px solid rgba(33, 28, 22, 0.14);
   cursor: pointer;
   transition: background 0.15s;
 }
-.record-row:last-child {
-  border-bottom: none;
-}
-.record-row:hover {
-  background: rgba(201, 160, 71, 0.12);
-}
+.row:hover { background: rgba(154, 58, 45, 0.05); }
 
-.result-mark {
-  flex-shrink: 0;
-  width: 1.7rem;
-  height: 1.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-family: 'ChosunGs', serif;
-  font-size: 0.85rem;
-  color: #f5e9ce;
+.res {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 0.9rem; color: #f3e2cf;
 }
-.result-mark.win {
-  background: linear-gradient(145deg, #6b8f3d, #3f5f22);
-}
-.result-mark.loss {
-  background: linear-gradient(145deg, #9a9088, #6a6058);
-}
+.res.win { background: var(--ju); box-shadow: 0 1px 3px rgba(70, 20, 12, 0.35); }
+.res.loss { background: #6f6a5e; }
 
-.opponent {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.92rem;
-  color: var(--inkColor);
+.opp {
+  display: flex; align-items: center; gap: 9px;
+  font-family: var(--display); font-size: 1.05rem; color: var(--ink);
   min-width: 0;
 }
-.opponent > :last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.opp { overflow: hidden; }
+.opp > :last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stone { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; display: inline-block; box-sizing: border-box; }
+.stone.black { background: radial-gradient(circle at 38% 34%, #4a453e, #17130e); }
+.stone.white { background: radial-gradient(circle at 38% 34%, #fff, #cfc7b4); box-shadow: inset 0 0 0 1px #b3a892; }
 
-.stone-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.stone-dot.black {
-  background: radial-gradient(circle at 35% 35%, #666, #111);
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-.stone-dot.white {
-  background: radial-gradient(circle at 35% 35%, #fff, #bbb);
-  border: 1px solid #aaa;
-}
+.reason { font-size: 0.88rem; color: var(--ink-soft); }
+.date { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-soft); }
 
-.reason {
-  flex-shrink: 0;
-  font-size: 0.76rem;
-  color: var(--inkMid);
-  padding: 2px 8px;
-  border: 1px solid var(--borderColor);
-  border-radius: 2px;
-}
-
-.date {
-  flex-shrink: 0;
-  font-size: 0.74rem;
-  color: var(--inkMid);
-  opacity: 0.75;
-}
-
-.chevron {
-  color: var(--inkMid);
-  opacity: 0.5;
-  font-size: 1.1rem;
-}
-
-@media (max-width: 520px) {
-  .date { display: none; }
-  .archive-title { font-size: 1.4rem; letter-spacing: 0.2em; }
+@media (max-width: 560px) {
+  .rowh, .row { grid-template-columns: 44px minmax(0, 1fr) auto; }
+  .rowh span:nth-child(3), .reason { display: none; }
+  .t { font-size: 1.5rem; }
 }
 </style>
