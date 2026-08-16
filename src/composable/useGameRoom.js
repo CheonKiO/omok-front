@@ -29,10 +29,11 @@ export function useGameRoom(roomNo, player) {
     try {
       ({ data } = await getRoom(roomNo));
     } catch (e) {
-      // 없는 방/권한 없음 → 방에 JOIN을 쏘지 않고 로비로 돌려보낸다.
+      // 없는 방/권한 없음 → 소켓을 완전히 내리고(잔존 client가 다음 방 입장을 막지 않도록)
+      // 로비로 돌려보낸다. clearRoomId만으로는 stompClient가 활성 잔존한다.
       console.error('방 정보를 불러오지 못했습니다:', e);
       show('방을 찾을 수 없습니다', 'error', 2000);
-      ws.clearRoomId();
+      ws.disconnect();
       router.push({ name: 'Home' });
       return;
     }
