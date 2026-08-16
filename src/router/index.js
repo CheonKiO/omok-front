@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import { useWebSocketStore } from '@/stores/websocket';
+import { getRoom } from '@/api/rooms';
+import { shouldReturnToRoom } from '@/router/guard';
 //지연로딩
 const Room = () => import('@/pages/BoardPage.vue');
 const Login = () => import('@/pages/LoginPage.vue');
@@ -23,19 +25,32 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const isLoggedIn = useAuthStore().isAuthenticated;
   const goingToLogin = to.path === '/login';
   const { show } = useToast();
 
-  const savedRoomId = useWebSocketStore().roomId;
-  // ✅ 1. roomId가 있고, 현재 경로가 해당 방이 아니라면 → 강제 이동
-  if (savedRoomId && to.path !== `/room/${savedRoomId}`) {
-    return next(`/room/${savedRoomId}`);
+  const ws = useWebSocketStore();
+  const savedRoomId = ws.roomId;
+  // 방 복귀는 인증된 사용자만. 미인증인데 저장값이 남아있으면(토큰 만료된 이전 세션 잔재)
+  // 방으로 되돌려도 WS CONNECT가 실패하고, GET /api/rooms/**가 permitAll이라
+  // getRoom이 성공해 /login ↔ /room/X 무한 리다이렉트가 된다 → 정리하고 통과시킨다.
+  if (savedRoomId && !isLoggedIn) {
+    ws.clearRoomId();
+    ws.roomId = null;
+  } else if (shouldReturnToRoom(isLoggedIn, savedRoomId, to.path)) {
+    try {
+      await getRoom(savedRoomId);
+      return next(`/room/${savedRoomId}`);
+    } catch {
+      ws.clearRoomId();
+      ws.roomId = null;
+    }
   }
+
   if (!isLoggedIn && !goingToLogin) {
     // 로그인 안 했고 로그인 페이지가 아니라면 → 로그인으로 리다이렉트
-    show('로그인을 먼저 해야 합니다', 1500);
+    show('로그인을 먼저 해야 합니다', 'error', 1500);
     next('/login');
   } else if (isLoggedIn && goingToLogin) {
     // 로그인 했는데 로그인 페이지 접근하면 → 홈으로 리다이렉트
