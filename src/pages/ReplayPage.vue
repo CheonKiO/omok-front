@@ -97,10 +97,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <style scoped>
 .replay {
-  max-width: 700px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 1rem 1rem 1.5rem;
-  min-height: calc(100svh - 61px); /* 전역 헤더 높이 제외 */
+  padding: 0.75rem 1rem 1rem;
+  flex: 1;
+  min-height: 0; /* 전역 헤더 아래 남은 높이 채움 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -109,17 +110,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 /* 복기 보드: 헤더+대진+컨트롤 공간 제외하고 화면높이에 맞춰 축소 → 무스크롤·중앙 정렬 */
 .replay :deep(.board-wrapper) {
-  width: min(100%, calc(100svh - 330px));
-  margin: 0.4rem auto;
+  width: min(100%, calc(100svh - 300px));
+  margin: 0.3rem auto;
 }
 
 .rtitle {
   text-align: center;
   font-family: var(--display);
-  font-size: 1.55rem;
+  font-size: 1.4rem;
   color: var(--ink);
-  letter-spacing: 0.35em;
-  margin: 0 0 0.9rem;
+  letter-spacing: 0.32em;
+  margin: 0 0 0.5rem;
 }
 
 .matchup {
@@ -127,7 +128,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   align-items: center;
   justify-content: center;
   gap: 0.9rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
   font-family: var(--display);
   font-size: 1rem;
   color: var(--ink-soft);
@@ -143,7 +144,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   text-align: center;
   font-size: 0.85rem;
   color: var(--ink-soft);
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.5rem;
   letter-spacing: 0.03em;
 }
 .verdict b { font-family: var(--display); color: var(--ju); font-weight: 600; letter-spacing: 0.06em; }
@@ -153,7 +154,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1.1rem;
+  margin-top: 0.7rem;
 }
 .step {
   font-size: 0.95rem;

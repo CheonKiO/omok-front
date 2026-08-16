@@ -88,10 +88,12 @@ onMounted(async () => {
 
 <style scoped>
 .archive {
-  max-width: 720px;
+  width: 80vw;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 1.25rem;
-  height: calc(100svh - 61px); /* 전역 헤더 제외 — 페이지 자체는 스크롤 안 함 */
+  padding: 1.5rem 26px 1.25rem;
+  flex: 1;
+  min-height: 0; /* 전역 헤더 아래 남은 높이 채움 — 페이지 자체는 스크롤 안 함 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

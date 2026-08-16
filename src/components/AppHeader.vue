@@ -44,11 +44,14 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   height: 60px;
-  max-width: 960px;
+  flex-shrink: 0;
+  width: 80vw;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 26px;
   border-bottom: 1.5px solid var(--ink);
   position: relative;
+  box-sizing: border-box;
 }
 .app-header::after {
   content: '';

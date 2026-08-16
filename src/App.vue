@@ -22,7 +22,10 @@ const showHeader = computed(() => !['Room', 'Login'].includes(route.name));
   padding: 0;
   font-family: var(--app-font);
   color: var(--ink);
-  min-height: 100svh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   /* 기존 한지 텍스처 + 은은한 반상 격자 오버레이 */
   background:
     linear-gradient(rgba(40, 30, 16, 0.06) 1px, transparent 1px),

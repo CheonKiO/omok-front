@@ -45,11 +45,13 @@ function errorMessage(mode, error) {
 
 <style scoped>
 .login-container {
+  flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
   box-sizing: border-box;
+  overflow: auto;
 }
 </style>
