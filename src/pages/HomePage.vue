@@ -1,8 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composable/useToast';
 import { createRoom, joinRoom, fetchRooms } from '@/api/rooms';
 import Card from '@/components/RoomListCard.vue';
@@ -25,15 +24,6 @@ const playerStore = usePlayerStore();
 const player = { id: playerStore.playerId, name: playerStore.username };
 
 const router = useRouter();
-
-const authStore = useAuthStore();
-const displayName = computed(() => authStore.nickname ?? '손님');
-const isGuest = computed(() => authStore.role === 'GUEST');
-
-async function handleLogout() {
-  await authStore.logout();
-  router.push('/login');
-}
 
 async function createRoomAndConnect() {
   if (roomName.value == null || roomName.value.trim().length < 2) {
@@ -108,18 +98,6 @@ onMounted(fetchRoomList);
 
 <template>
   <div class="lobby">
-
-    <div class="user-bar">
-      <span class="user-name">
-        <span class="user-dot" :class="isGuest ? 'guest' : 'member'"></span>
-        {{ displayName }}
-        <span class="user-role">{{ isGuest ? '게스트' : '회원' }}</span>
-      </span>
-      <span class="bar-actions">
-        <button v-if="!isGuest" class="btn kifu-btn" @click="router.push('/games')">내 기보</button>
-        <button class="btn logout-btn" @click="handleLogout">로그아웃</button>
-      </span>
-    </div>
 
     <div class="lobby-main">
     <header class="lobby-header">
@@ -232,65 +210,13 @@ onMounted(fetchRoomList);
   flex-direction: column;
 }
 
-/* 유저바 아래 남는 공간에 헤더+목록을 세로 중앙 배치 */
+/* 남는 공간에 헤더+목록을 세로 중앙 배치 */
 .lobby-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding-bottom: 3rem;
-}
-
-/* 유저 바 */
-.user-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.4rem;
-}
-
-.user-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--inkColor);
-  letter-spacing: 0.03em;
-}
-
-.user-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.user-dot.member {
-  background: radial-gradient(circle at 35% 35%, #666, #111);
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.user-dot.guest {
-  background: radial-gradient(circle at 35% 35%, #fff, #bbb);
-  border: 1px solid #aaa;
-}
-
-.user-role {
-  font-size: 0.72rem;
-  color: var(--inkMid);
-  opacity: 0.75;
-}
-
-.bar-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.logout-btn,
-.kifu-btn {
-  font-size: 0.78rem;
-  padding: 4px 12px;
-  margin: 0;
 }
 
 /* 헤더 */
