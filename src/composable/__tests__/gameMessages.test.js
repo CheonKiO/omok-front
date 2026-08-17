@@ -58,6 +58,18 @@ describe('useGameMessages — 승자', () => {
   });
 });
 
+describe('useGameMessages — 서버 ERROR', () => {
+  it('ERROR 프레임을 error 토스트로 표시한다', () => {
+    const ctx = setup();
+
+    ctx.handleMessage({ type: 'ERROR', message: '금수 위치입니다.' });
+
+    expect(ctx.shown).toContainEqual(
+      expect.objectContaining({ msg: '금수 위치입니다.', type: 'error' }),
+    );
+  });
+});
+
 describe('useGameMessages — 유령 입장 토스트', () => {
   it('이미 등록된 상대의 JOIN은 토스트를 띄우지 않는다', () => {
     const ctx = setup();

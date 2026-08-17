@@ -90,6 +90,12 @@ export function useGameMessages({ state, reconnect, player, show }) {
         show(msg.message + '님이 준비를 취소하셨습니다');
         break;
 
+      case 'ERROR':
+        // 서버가 착수를 거부(금수/차례 아님/이미 돌 존재/진행중 아님)하면 broadcastError로
+        // 통지한다. 이 case가 없으면 거부가 화면상 무반응으로 유실돼 "돌이 안 놓인다"만 겪는다.
+        show(msg.message, 'error');
+        break;
+
       default:
         // 미지의 메시지 타입이 조용히 유실되지 않도록 경고.
         console.warn(`[useGameMessages] 처리되지 않은 메시지 타입: ${msg?.type}`, msg);

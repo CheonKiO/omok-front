@@ -44,12 +44,15 @@ function onKey(e) {
 }
 
 onMounted(async () => {
+  // 리스너는 await 앞에서 등록한다. await getGame 도중 언마운트되면 onUnmounted가 먼저
+  // 돌아 removeEventListener가 무효화되고, 이후 resolve된 콜백이 등록하면 죽은 컴포넌트의
+  // 리스너가 영구 잔존한다. (등록 시점엔 moves가 비어 키 입력이 무해하다.)
+  window.addEventListener('keydown', onKey);
   try {
     const { data } = await getGame(route.params.id);
     game.value = data;
     moves.value = data.moves ?? [];
     step.value = moves.value.length; // 처음엔 최종 국면
-    window.addEventListener('keydown', onKey);
   } catch (e) {
     show(e.response?.status === 404 ? '기보를 찾을 수 없습니다' : '기보를 불러오지 못했습니다', 'error', 1500);
     router.push('/games');
