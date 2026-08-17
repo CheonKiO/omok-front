@@ -134,6 +134,10 @@ watch(() => room.title, (title) => {
   if (title) document.title = `${title} · 오목`;
 }, { immediate: true });
 
+// await tabLock.acquire()/load() 도중 언마운트되면 onUnmounted가 먼저 돌아 정리가 끝난
+// 뒤에 resolve된 콜백이 소켓을 붙이고 핸들러를 재등록해 회수되지 않는다. 플래그로 차단한다.
+let disposed = false;
+
 onMounted(async () => {
   // 같은 방을 이미 연 다른 탭이 있으면 두 번째 탭은 들어가지 않는다(중복 JOIN 방지).
   if (!(await tabLock.acquire())) {
@@ -144,12 +148,14 @@ onMounted(async () => {
   }
   // load 실패(없는 방/권한 없음)면 connect하지 않는다 — 안 그러면 죽은 방에 소켓이 붙고 JOIN이 나간다.
   if (!(await load())) return;
+  if (disposed) return; // await 도중 언마운트됐으면 소켓을 붙이지 않는다.
   ws.setHandler(handleMessage);
   ws.setConnectHandler(load);
   ws.connect(roomNo, player);
 });
 
 onUnmounted(() => {
+  disposed = true;
   tabLock.release();
   ws.setHandler(null);
   ws.setConnectHandler(null);
